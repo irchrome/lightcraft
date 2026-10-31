@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+bad=$(git diff --cached --name-only --diff-filter=AM | grep -Ei '^ir-private/|\.(dcp|cube|orf|raf|nef|cr2|cr3|arw|dng|rw2|pef)$' || true)
+if [ -n "$bad" ]; then
+  echo "pre-commit: refusing private or third-party material:" >&2
+  echo "$bad" >&2
+  exit 1
+fi

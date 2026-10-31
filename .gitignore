@@ -17,3 +17,6 @@ plan/
 
 # Python tools import their public operator family.
 __pycache__/
+
+/ir-private/
+/target/ir-agent/
