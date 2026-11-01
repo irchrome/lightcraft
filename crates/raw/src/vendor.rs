@@ -20,6 +20,7 @@ pub mod mrw;
 pub mod nef;
 mod nef_lens;
 pub mod nefc;
+mod olympus12;
 pub mod orf;
 pub mod pef;
 pub mod raf;

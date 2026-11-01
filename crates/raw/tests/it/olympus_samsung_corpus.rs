@@ -124,8 +124,10 @@ fn compressed_olympus_bodies_are_unsupported_with_embedded_previews() {
             continue;
         };
         assert_eq!(probe(&bytes), Some(RawFormat::Orf), "{name}");
-        assert!(matches!(decode(&bytes), Err(RawError::Unsupported(why)) if why == "Olympus compressed ORF"), "{name}");
-        assert!(matches!(probe_info(&bytes), Err(RawError::Unsupported(why)) if why == "Olympus compressed ORF"), "{name}");
+        // fork: the ported 12-bit decoder (`vendor/olympus12.rs`) decodes the measured profile; other coding
+        // profiles stay unsupported. Either way the call must not fail any other way.
+        assert!(matches!(decode(&bytes), Ok(_) | Err(RawError::Unsupported(_))), "{name}");
+        assert!(matches!(probe_info(&bytes), Ok(_) | Err(RawError::Unsupported(_))), "{name}");
         let jpeg = embedded_preview(&bytes).unwrap_or_else(|| panic!("{name}: no camera JPEG"));
         assert!(jpeg.starts_with(&[0xff, 0xd8]) && jpeg.ends_with(&[0xff, 0xd9]), "{name}: invalid camera JPEG");
     }
