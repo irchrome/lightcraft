@@ -1,4 +1,4 @@
-//! Olympus ORF — uncompressed variants.
+//! Olympus ORF — uncompressed variants and the measured compressed 12-bit profile.
 //!
 //! Sources: TIFF 6.0 (the `IIRO`/`MMOR` container is a TIFF with a different magic number), Exif 2.3 (`CFAPattern`,
 //! tag `0xa302`), the ExifTool Olympus tag-name documentation (maker-note sub-directories `0x2020` CameraSettings —
@@ -28,15 +28,18 @@
 //!   (last), the bit order and the pixel order were fixed by measurement on the CC0 files 2878 (E-300), 3540 (E-500)
 //!   and 3624 (E-330), as was the sensor-origin RGGB anchoring (the maker-note crop offsets are odd). The E-M5 Mark II
 //!   and PEN-F files were only checked for smoothness, not for CFA anchoring or black level.
-//! - Olympus's compressed ORF (most interchangeable-lens bodies since ~2008) is not decoded: no permissively
-//!   licensed description exists. It reports [`RawError::Unsupported`]; the embedded preview still works.
+//! - Compressed ORF (most interchangeable-lens bodies since ~2008): only the measured E01/V02 12-bit profile is
+//!   decoded (`olympus12`), after checking the ImageProcessing coding-field fingerprint and the strip layout. The
+//!   decoder and its profile fingerprint are a port of upstream PR #360 (voshart), whose black-box provenance
+//!   (CC0 specimens, hypotheses, measurements) is documented there in `docs/raw/orf12-provenance.md`. Other
+//!   coding profiles report [`RawError::Unsupported`]; the embedded preview still works.
 //! - The colour-filter layout is the file's Exif `CFAPattern`: GRBG on the E-1 and E-400, RGGB on the XZ-2, where
 //!   the colours of the decoded mosaic follow the embedded JPEG best with exactly that layout
 //!   (`corpus_orf_cfa_patterns`). The samples' active areas start at even offsets, so they can't tell whether the
 //!   pattern is anchored at the sensor origin (assumed) or at the active area. Files without a usable tag fall back
 //!   to the green diagonal found from the data, which can't tell red from blue (GRBG or RGGB is assumed).
 
-use super::{cfa_from_exif, white_from_data};
+use super::{cfa_from_exif, olympus12, white_from_data};
 use crate::tiffraw::{Packing, read_image};
 use crate::unpack::unpack_msb;
 use crate::{BlackLevel, Cfa, ColorData, Mode, OpcodeLists, RawData, RawError, RawFormat, RawImage, Rect, Result};
@@ -208,9 +211,40 @@ pub(crate) fn decode(bytes: &[u8], mode: Mode) -> Result<RawImage> {
     let chunks = info.chunks(bytes.len() as u64);
     let total = chunks.iter().fold(0u64, |a, c| a.saturating_add(c.len));
     let stated = cfa_from_exif(&tiff);
+    let mn = maker_note(bytes, &tiff);
+    let ip = mn.as_ref().and_then(|m| sub_ifd(bytes, m, IMAGE_PROCESSING));
+    // the measured compressed profile is selected by its coding-field fingerprint, never by strip density; a file
+    // with other, non-zero coding fields must not fall through to the word / packed readers below
+    let compressed_profile = ip.as_ref().is_some_and(olympus12::matches_profile);
+    if !compressed_profile && ip.as_ref().is_some_and(olympus12::has_coding_fields) {
+        return Err(RawError::Unsupported("unverified Olympus coding profile".into()));
+    }
     let mut two_field = false;
     let (mut data, bits) = if info.compression != 1 {
         return Err(RawError::Unsupported(format!("ORF compression {}", info.compression)));
+    } else if compressed_profile {
+        if tiff.order != lightcraft_tiff::ByteOrder::Little
+            || info.bits_per_sample.as_slice() != [16]
+            || info.samples_per_pixel != 1
+            || ifd0.u64(t::SAMPLES_PER_PIXEL).is_some_and(|v| v != 1)
+            || info.sample_format != 1
+            || info.planar != 1
+            || info.predictor != 1
+            || stated.is_none()
+            || chunks.len() != 1
+            || info.byte_counts.first().is_none_or(|&count| count == 0)
+            || !matches!(info.layout, lightcraft_tiff::image::Layout::Strips { rows_per_strip } if rows_per_strip as usize == h)
+        {
+            return Err(RawError::Unsupported("unverified compressed ORF container layout or Bayer metadata".into()));
+        }
+        let src = chunk_bytes(bytes, &chunks[0]).ok_or_else(|| RawError::Corrupt("ORF strip outside file".into()))?;
+        let d = if mode == Mode::Header {
+            olympus12::validate(src, w, h)?;
+            Vec::new()
+        } else {
+            olympus12::decode(src, w, h)?
+        };
+        (RawData::U16(d), 12)
     } else if total >= (n as u64) * 2 {
         let d = read_image(bytes, &info, tiff.order, Packing::Word16)?;
         (d, 16)
@@ -282,8 +316,6 @@ pub(crate) fn decode(bytes: &[u8], mode: Mode) -> Result<RawImage> {
         bits
     };
 
-    let mn = maker_note(bytes, &tiff);
-    let ip = mn.as_ref().and_then(|m| sub_ifd(bytes, m, IMAGE_PROCESSING));
     let active = match ip.as_ref().map(|i| CROP.map(|tag| i.u64(tag).map(|v| v as usize))) {
         // checked: the tags are file data; `x + cw` on a hostile value would wrap past the bounds
         Some([Some(x), Some(y), Some(cw), Some(ch)])
@@ -788,6 +820,187 @@ mod tests {
         let bytes = orf_with(20, 4, 16, pack_blocks(&[5u16; 80]), Some(RGGB));
         for cut in [bytes.len() - 1, bytes.len() - 40, bytes.len() / 2, 100] {
             let _ = crate::decode(&bytes[..cut]);
+        }
+    }
+
+    // --- the measured compressed 12-bit profile (port of upstream PR #360) ---
+
+    /// A minimal ORF in either byte order whose IFD0 states every tag the compressed reader checks, plus an optional
+    /// Exif IFD built by the caller.
+    fn orf_with_exif(w: u32, h: u32, bits: u16, strip: Vec<u8>, order: ByteOrder, exif: Option<IfdBuilder>) -> Vec<u8> {
+        let mut ifd = IfdBuilder::new();
+        ifd.set(t::IMAGE_WIDTH, Value::Long(vec![w]));
+        ifd.set(t::IMAGE_LENGTH, Value::Long(vec![h]));
+        ifd.set(t::BITS_PER_SAMPLE, Value::Short(vec![bits]));
+        ifd.set(t::COMPRESSION, Value::Short(vec![1]));
+        ifd.set(t::PHOTOMETRIC, Value::Short(vec![1]));
+        ifd.set(t::SAMPLES_PER_PIXEL, Value::Short(vec![1]));
+        ifd.set(t::SAMPLE_FORMAT, Value::Short(vec![1]));
+        ifd.set(t::PLANAR_CONFIGURATION, Value::Short(vec![1]));
+        ifd.set(t::PREDICTOR, Value::Short(vec![1]));
+        ifd.set(t::MAKE, Value::Ascii("OLYMPUS IMAGING CORP.".into()));
+        ifd.set_image(ImageData::Strips { rows_per_strip: h, strips: vec![strip] });
+        if let Some(exif) = exif {
+            ifd.set_child(t::EXIF_IFD, exif);
+        }
+        let mut b = TiffWriter::new(order, false).write(&[ifd]).unwrap();
+        b[..4].copy_from_slice(if order == ByteOrder::Little { b"IIRO" } else { b"MMOR" });
+        b
+    }
+
+    fn exif_cfa(order: ByteOrder, pattern: &[u8]) -> IfdBuilder {
+        let mut v = Vec::new();
+        order.put_u16(&mut v, 2);
+        order.put_u16(&mut v, 2);
+        v.extend_from_slice(pattern);
+        IfdBuilder::new().with(EXIF_CFA_PATTERN, Value::Undefined(v))
+    }
+
+    #[test]
+    fn compressed_orf_without_verified_profile_stays_unsupported() {
+        let bytes = orf_with_exif(40, 24, 16, vec![0; 40], ByteOrder::Little, Some(exif_cfa(ByteOrder::Little, &[0, 1, 1, 2])));
+        assert!(matches!(crate::decode(&bytes), Err(RawError::Unsupported(_))));
+        assert!(matches!(crate::probe_info(&bytes), Err(RawError::Unsupported(_))));
+    }
+
+    fn profile_fields() -> Vec<(u16, u16, u32, [u8; 4])> {
+        let mut fields = vec![(0x0611, 3, 2, [12, 0, 0, 0])];
+        fields.extend(olympus12::PROFILE.iter().map(|&(tag, value)| (tag, 3, 1, [value as u8, (value >> 8) as u8, 0, 0])));
+        fields
+    }
+
+    fn compressed_exif(fields: &[(u16, u16, u32, [u8; 4])]) -> IfdBuilder {
+        // Synthetic note-relative OlympusNew directories; every fixture field is inline.
+        let mut note = b"OLYMPUS\0II\x03\0".to_vec();
+        note.extend_from_slice(&1u16.to_le_bytes());
+        note.extend_from_slice(&IMAGE_PROCESSING.to_le_bytes());
+        note.extend_from_slice(&4u16.to_le_bytes());
+        note.extend_from_slice(&1u32.to_le_bytes());
+        note.extend_from_slice(&30u32.to_le_bytes());
+        note.extend_from_slice(&0u32.to_le_bytes());
+        note.extend_from_slice(&(fields.len() as u16).to_le_bytes());
+        for (tag, kind, count, value) in fields {
+            note.extend_from_slice(&tag.to_le_bytes());
+            note.extend_from_slice(&kind.to_le_bytes());
+            note.extend_from_slice(&count.to_le_bytes());
+            note.extend_from_slice(value);
+        }
+        note.extend_from_slice(&0u32.to_le_bytes());
+        exif_cfa(ByteOrder::Little, &[0, 1, 1, 2]).with(t::MAKER_NOTE, Value::Undefined(note))
+    }
+
+    fn compressed_fixture(exif: IfdBuilder, bits: u16, strip: Vec<u8>) -> Vec<u8> {
+        orf_with_exif(4, 4, bits, strip, ByteOrder::Little, Some(exif))
+    }
+
+    fn compressed_strip() -> Vec<u8> {
+        vec![0, 0, 0, 0, 1, 0, 0, 0x18, 0x10, 0x18, 0x10, 0x10, 0x10, 0x10, 0x10, 0x96, 0x10, 0x11, 0x10, 0x10, 0x10, 0x10, 0x10]
+    }
+
+    #[test]
+    fn measured_profile_decodes_and_probe_skips_sensor_interpretation() {
+        let bytes = compressed_fixture(compressed_exif(&profile_fields()), 16, compressed_strip());
+        let raw = crate::decode(&bytes).unwrap();
+        assert_eq!(raw.data, RawData::U16(vec![32, 0, 64, 0, 0, 0, 0, 0, 4, 0, 34, 0, 0, 0, 0, 0]));
+        assert_eq!(raw.bits, 12);
+        assert_eq!(raw.cfa.as_ref().unwrap().name(), "RGGB");
+        let header = decode(&bytes, Mode::Header).unwrap();
+        assert_eq!(header.data.len(), 0);
+        assert_eq!(header.info(), raw.info());
+        let mut invalid_body = compressed_strip();
+        invalid_body[7..].fill(0);
+        let bytes = compressed_fixture(compressed_exif(&profile_fields()), 16, invalid_body);
+        assert_eq!(decode(&bytes, Mode::Header).unwrap().data.len(), 0);
+        assert!(matches!(crate::decode(&bytes), Err(RawError::Corrupt(_))));
+    }
+
+    #[test]
+    fn profile_takes_precedence_over_word_density_heuristic() {
+        // Two initial escapes (q=219/406), then two reset-row q=0 ordinary words.
+        // Literal bits, not an encoder. Seventeen strip bytes exceed 2*4 samples.
+        let bits = "000000000000000000000011010101100000000000000000000011001001100001000000010000";
+        let mut strip = vec![0, 0, 0, 0, 1, 0, 0];
+        strip.extend(bits.as_bytes().chunks(8).map(|c| c.iter().fold(0u8, |v, &b| (v << 1) | (b - b'0')) << (8 - c.len())));
+        assert_eq!(strip.len(), 17);
+        let bytes = orf_with_exif(2, 2, 16, strip, ByteOrder::Little, Some(compressed_exif(&profile_fields())));
+        assert_eq!(crate::decode(&bytes).unwrap().data, RawData::U16(vec![876, 1624, 0, 0]));
+        assert_eq!(crate::probe_info(&bytes).unwrap(), crate::decode(&bytes).unwrap().info());
+    }
+
+    #[test]
+    fn unknown_profile_depth_and_missing_cfa_are_unsupported() {
+        let original = profile_fields();
+        let mut variants = Vec::new();
+        for i in 0..original.len() {
+            let mut value = original.clone();
+            value[i].3[0] ^= 1;
+            variants.push(value);
+            let mut kind = original.clone();
+            kind[i].1 = 4;
+            variants.push(kind);
+            let mut count = original.clone();
+            count[i].2 = 0;
+            variants.push(count);
+            let mut missing = original.clone();
+            missing.remove(i);
+            variants.push(missing);
+        }
+        let mut future = original.clone();
+        future.push((0x064a, 3, 1, [0; 4]));
+        variants.push(future);
+        let mut fourteen = original.clone();
+        fourteen[0].3[0] = 14;
+        variants.push(fourteen);
+        for fields in variants {
+            let bytes = compressed_fixture(compressed_exif(&fields), 16, compressed_strip());
+            assert!(matches!(crate::decode(&bytes), Err(RawError::Unsupported(_))));
+            assert!(matches!(crate::probe_info(&bytes), Err(RawError::Unsupported(_))));
+        }
+        let bytes = compressed_fixture(compressed_exif(&original), 14, compressed_strip());
+        assert!(matches!(crate::decode(&bytes), Err(RawError::Unsupported(_))));
+        let mut exif = compressed_exif(&original);
+        exif.set(EXIF_CFA_PATTERN, Value::Undefined(vec![]));
+        let bytes = compressed_fixture(exif, 16, compressed_strip());
+        assert!(matches!(crate::decode(&bytes), Err(RawError::Unsupported(_))));
+        let bytes = orf_with_exif(4, 4, 16, compressed_strip(), ByteOrder::Big, Some(compressed_exif(&original)));
+        assert!(matches!(crate::decode(&bytes), Err(RawError::Unsupported(_))));
+    }
+
+    #[test]
+    fn measured_orf_truncations_and_container_mutations_do_not_panic() {
+        let bytes = compressed_fixture(compressed_exif(&profile_fields()), 16, compressed_strip());
+        for cut in 0..bytes.len() {
+            let _ = crate::decode(&bytes[..cut]);
+            let _ = crate::probe_info(&bytes[..cut]);
+        }
+        for at in 0..bytes.len() {
+            let mut changed = bytes.clone();
+            changed[at] ^= 0xff;
+            let _ = crate::decode(&changed);
+            let _ = crate::probe_info(&changed);
+        }
+    }
+
+    #[test]
+    fn compressed_container_layout_must_be_verified() {
+        let bytes = compressed_fixture(compressed_exif(&profile_fields()), 16, compressed_strip());
+        let parsed = Tiff::parse(&bytes).unwrap();
+        for (tag, value) in [
+            (t::SAMPLES_PER_PIXEL, 0u16),
+            (t::SAMPLES_PER_PIXEL, 2),
+            (t::SAMPLE_FORMAT, 2),
+            (t::SAMPLE_FORMAT, 3),
+            (t::PLANAR_CONFIGURATION, 2),
+            (t::PREDICTOR, 2),
+            (t::COMPRESSION, 7),
+            (t::ROWS_PER_STRIP, 2),
+            (t::STRIP_BYTE_COUNTS, 0),
+        ] {
+            let at = parsed.ifds[0].get(tag).unwrap().offset as usize;
+            let mut changed = bytes.clone();
+            changed[at..at + 2].copy_from_slice(&value.to_le_bytes());
+            assert!(matches!(crate::decode(&changed), Err(RawError::Unsupported(_))), "tag {tag:04x}, value {value}");
+            assert!(matches!(crate::probe_info(&changed), Err(RawError::Unsupported(_))), "tag {tag:04x}, value {value}");
         }
     }
 }
