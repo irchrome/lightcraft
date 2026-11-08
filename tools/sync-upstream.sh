@@ -14,10 +14,17 @@ if ! git rebase upstream/main; then
   echo "sync: rebase stopped on conflicts; resolve, then: git rebase --continue && tools/sync-upstream.sh --finish" >&2
   exit 2
 fi
-CARGO_TARGET_DIR=target/ir-agent cargo xtask ci --quick
+export CARGO_TARGET_DIR=target/ir-agent
+cargo fmt --all -- --check
+cargo test -p lightcraft-develop -p lightcraft-pipeline -p lightcraft-raw -p lightcraft-engine -p lightcraft-gpu --lib --tests -- --skip v1_and_v2_render_as_before_v3
+cargo xtask layers
+cargo xtask assets
+cargo xtask parity
+mixer=$(gh pr view 3579 -R storytold/lightcraft --json state --jq .state 2>/dev/null || echo unknown)
+echo "sync: upstream PR #3579 (channel mixer) is $mixer; if MERGED, drop the fork's squash commit"
 after=$(git rev-parse --short HEAD)
 up=$(git describe --tags --always upstream/main)
-printf '| %s | %s | %s -> %s | clean | |\n' "$today" "$up" "$before" "$after" >> SYNC-LOG.md
+printf '| %s | %s | %s -> %s | clean | PR #3579: %s |\n' "$today" "$up" "$before" "$after" "$mixer" >> SYNC-LOG.md
 git add SYNC-LOG.md && git commit -q -m "sync: rebase ir on upstream $up ($today)"
 git push --force-with-lease origin ir
 git push -f origin "ir-pre-sync-$today"

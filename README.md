@@ -17,6 +17,13 @@ described in [`IR-FORK.md`](IR-FORK.md).
 | `main` | an exact mirror of upstream `main`, fast-forward only |
 | `ir` | upstream `main` plus the IR patch series, rebased on upstream weekly (`tools/sync-upstream.sh`, log in `SYNC-LOG.md`). History of `ir` is rewritten on every sync; a tag `ir-pre-sync-<date>` marks the state before each rebase |
 
+## What the fork adds today
+
+- Compressed 12-bit Olympus ORF decoding, ported from upstream PR #360. Upstream withdrew its own compressed ORF
+  decoder pending a provenance review and has an open objection to PR #360; this fork keeps the port and marks it as
+  disputed. It is not part of upstream LightCraft.
+- An RGB channel mixer with a neutral picker and a red/blue swap, from upstream PR #3579, taken before upstream review.
+
 ## Compatibility
 
 Develop settings written by this fork carry an extra `ir` field. Upstream LightCraft ignores unknown
