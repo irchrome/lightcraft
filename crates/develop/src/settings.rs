@@ -168,6 +168,9 @@ pub struct DevelopSettings {
     /// is the identity).
     #[serde(skip_serializing_if = "ChannelMixer::is_identity")]
     pub channel_mixer: ChannelMixer,
+    /// Fork (infrared): the IR mix the Channel Mixer's IR buttons put on and the mixer it went on ([`crate::IrMixState`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ir_mix: Option<crate::IrMixState>,
     /// Section on/off toggles (the "eye" buttons on panel headers): section id → enabled.
     pub disabled_sections: Vec<String>,
 }
@@ -203,6 +206,7 @@ impl Default for DevelopSettings {
             enhance: Enhance::default(),
             calibration: Calibration::default(),
             channel_mixer: ChannelMixer::default(),
+            ir_mix: None,
             disabled_sections: Vec::new(),
         }
     }

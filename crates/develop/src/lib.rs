@@ -7,11 +7,13 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod controls;
+pub mod ir_mix;
 pub mod presets;
 pub mod segmask;
 pub mod settings;
 
 pub use controls::{CONTROLS, ControlSpec, Section, Track};
+pub use ir_mix::IrMixState;
 pub use presets::{Preset, SettingsGroup, apply_partial, extract_groups};
 pub use segmask::{SegMask, with_grid_interner};
 pub use settings::*;
@@ -203,6 +205,7 @@ impl DevelopSettings {
             Section::Profile => {
                 self.profile = Profile::default();
             }
+            Section::ChannelMixer => self.ir_mix = None,
             _ => {}
         }
     }

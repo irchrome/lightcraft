@@ -3,14 +3,20 @@
 //! The Channel Mixer works on linear Rec.2020. Swapping its red and blue output rows there turns the
 //! gold sky of a white-balanced infrared frame teal (h ≈ 216°) and pushes dark foliage towards
 //! salmon, where sRGB-based editors give the classic azure sky (h ≈ 251°). Every [`IrMix`] here is
-//! defined between sRGB primaries, as those editors do it, and applied on top of the current mix:
-//! `P · S · P⁻¹ · M`, with `P` linear sRGB → linear Rec.2020, `S` the mix and `M` the current mixer
-//! (so a white balance or a neutral pick made before stays in). Each `S` keeps white white (its
-//! rows sum to one), hence so does the result. A result past the ±200 % sliders is scaled down as a
-//! whole, like the neutral picker does: colours stay, the photo comes out darker by `darker` EV.
+//! defined between sRGB primaries, as those editors do it, and applied to a base mixer:
+//! `P · S · P⁻¹ · B`, with `P` linear sRGB → linear Rec.2020, `S` the mix and `B` the mixer before
+//! the first IR mix of the current series (so a white balance or a neutral pick made before stays
+//! in). Each `S` keeps white white (its rows sum to one), hence so does the result. A result past
+//! the ±200 % sliders is scaled down as a whole, like the neutral picker does: colours stay, the
+//! photo comes out darker by `darker` EV.
+//!
+//! The buttons choose one mix ([`choose_ir_mix`]): another mix replaces the one that is on (never
+//! stacks on it: after "Mono from Red" every row is the same and a further mix stacked on it did
+//! nothing), and the mix that is on, chosen again, returns to the base. The settings keep the base
+//! and the mix ([`IrMixState`]); a mixer changed since by anything else becomes the next base.
 
 use lightcraft_color::{Mat3, REC2020, SRGB};
-use lightcraft_develop::{ChannelMixer, MixRow};
+use lightcraft_develop::{ChannelMixer, DevelopSettings, IrMixState, MixRow};
 
 /// What a mix refuses with: a value that is not a number (a damaged mixer).
 pub const IR_MIX_ERROR: &str = "This Channel Mixer can't be mixed further: reset it, then try again";
@@ -52,6 +58,11 @@ impl IrMix {
     /// The mix named `id` (see [`IrMix::ALL`]).
     pub fn from_id(id: &str) -> Option<IrMix> {
         IrMix::ALL.iter().find(|(_, i, _)| *i == id).map(|(m, _, _)| *m)
+    }
+
+    /// The mix's command id (see [`IrMix::ALL`]).
+    pub fn id(self) -> &'static str {
+        IrMix::ALL.iter().find(|(m, _, _)| *m == self).map_or("", |(_, id, _)| id)
     }
 
     /// The mix between sRGB primaries (rows: red, green, blue outputs; columns: inputs).
@@ -104,6 +115,40 @@ pub fn apply_ir_mix(mix: IrMix, m: &ChannelMixer) -> Result<(ChannelMixer, f64),
 /// The red/blue swap between sRGB primaries (`develop.mixerSwapRBsRGB`).
 pub fn mixer_swap_rb_srgb(m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'static str> {
     apply_ir_mix(IrMix::SwapRB, m)
+}
+
+/// How far a mixer coefficient (per cent) may be from the mix worked out again and still count as it.
+const SAME: f64 = 1e-6;
+
+/// The IR mix the Channel Mixer of `d` shows: the one its [`IrMixState`] names, while the mixer is still that mix
+/// applied to the state's base. `None` once anything else changed the mixer.
+pub fn active_ir_mix(d: &DevelopSettings) -> Option<IrMix> {
+    let state = d.ir_mix.as_ref()?;
+    let mix = IrMix::from_id(&state.mix)?;
+    let (want, _) = apply_ir_mix(mix, &state.base).ok()?;
+    let same = want.rows().iter().flatten().zip(d.channel_mixer.rows().iter().flatten()).all(|(a, b)| (a - b).abs() <= SAME);
+    same.then_some(mix)
+}
+
+/// Choose IR mix `mix` for settings `d` (an IR mix button): `mix` applied to the base mixer, replacing the IR mix
+/// that is on; `mix` itself when it is on: back to the base, with no IR mix on. The base is the state's while
+/// [`active_ir_mix`] holds, else the mixer as it is now. Returns how much darker the photo comes out (EV, see
+/// [`apply_ir_mix`]); the Channel Mixer section's eye is left to the caller.
+pub fn choose_ir_mix(d: &mut DevelopSettings, mix: IrMix) -> Result<f64, &'static str> {
+    let on = active_ir_mix(d);
+    let base = match (&d.ir_mix, on) {
+        (Some(state), Some(_)) => state.base,
+        _ => d.channel_mixer,
+    };
+    if on == Some(mix) {
+        d.channel_mixer = base;
+        d.ir_mix = None;
+        return Ok(0.0);
+    }
+    let (mixer, darker) = apply_ir_mix(mix, &base)?;
+    d.channel_mixer = mixer;
+    d.ir_mix = Some(IrMixState { base, mix: mix.id().to_string() });
+    Ok(darker)
 }
 
 #[cfg(test)]
@@ -190,7 +235,81 @@ mod tests {
     fn ids_round_trip() {
         for (mix, id, _) in IrMix::ALL {
             assert_eq!(IrMix::from_id(id), Some(mix));
+            assert_eq!(mix.id(), id);
         }
         assert_eq!(IrMix::from_id("nope"), None);
+    }
+
+    /// A mixer with a white balance in it (as a neutral pick leaves it).
+    fn picked() -> ChannelMixer {
+        ChannelMixer {
+            red: MixRow { red: 57.9, ..MixRow::default() },
+            green: MixRow { green: 163.6, ..MixRow::default() },
+            blue: MixRow { blue: 45.0, ..MixRow::default() },
+        }
+    }
+
+    fn with_mixer(m: ChannelMixer) -> DevelopSettings {
+        DevelopSettings { channel_mixer: m, ..DevelopSettings::default() }
+    }
+
+    /// The owner's bug: after "Mono from Red" every row was the same and further mixes, stacked on it, did nothing.
+    /// Another mix now replaces it: exactly that mix on the mixer from before the first one.
+    #[test]
+    fn a_mix_after_mono_from_red_replaces_it() {
+        let mut d = with_mixer(picked());
+        choose_ir_mix(&mut d, IrMix::MonoRed).unwrap();
+        let mono = d.channel_mixer.rows();
+        assert!(mono.iter().all(|r| r.iter().zip(mono[0]).all(|(a, b)| close(*a, b, 1e-9))), "mono: {mono:?}");
+        assert_eq!(active_ir_mix(&d), Some(IrMix::MonoRed));
+        let darker = choose_ir_mix(&mut d, IrMix::SwapRB).unwrap();
+        let (want, want_darker) = apply_ir_mix(IrMix::SwapRB, &picked()).unwrap();
+        assert_eq!((d.channel_mixer, darker), (want, want_darker), "the swap on the picked mixer, not on mono");
+        assert_eq!(active_ir_mix(&d), Some(IrMix::SwapRB));
+        assert_eq!(d.ir_mix.as_ref().map(|s| s.base), Some(picked()));
+        // every mix in turn: never stacked, never scaled further
+        for (mix, _, _) in IrMix::ALL.into_iter().chain(IrMix::ALL) {
+            if active_ir_mix(&d) == Some(mix) {
+                continue;
+            }
+            choose_ir_mix(&mut d, mix).unwrap();
+            assert_eq!(d.channel_mixer, apply_ir_mix(mix, &picked()).unwrap().0, "{mix:?}");
+        }
+    }
+
+    /// The mix that is on, chosen again, returns to the base: no IR mix is on then.
+    #[test]
+    fn the_mix_that_is_on_chosen_again_returns_to_the_base() {
+        for (mix, _, _) in IrMix::ALL {
+            let mut d = with_mixer(picked());
+            choose_ir_mix(&mut d, mix).unwrap();
+            assert_ne!(d.channel_mixer, picked(), "{mix:?}");
+            assert_eq!(choose_ir_mix(&mut d, mix).unwrap(), 0.0);
+            assert_eq!((d.channel_mixer, d.ir_mix.clone(), active_ir_mix(&d)), (picked(), None, None), "{mix:?}");
+        }
+    }
+
+    /// A mixer changed by anything else after a mix (here a slider) is the next mix's base; the stale state says
+    /// no mix is on.
+    #[test]
+    fn a_mixer_changed_since_is_the_next_base() {
+        let mut d = with_mixer(picked());
+        choose_ir_mix(&mut d, IrMix::SwapRB).unwrap();
+        d.channel_mixer.green.green = 120.0;
+        assert_eq!(active_ir_mix(&d), None);
+        let changed = d.channel_mixer;
+        choose_ir_mix(&mut d, IrMix::SwapRB).unwrap();
+        assert_eq!(d.channel_mixer, apply_ir_mix(IrMix::SwapRB, &changed).unwrap().0, "a swap of the changed mixer, not a toggle");
+        assert_eq!(d.ir_mix.map(|s| s.base), Some(changed));
+    }
+
+    /// A state that names no known mix, or whose base can't be mixed, is not a mix that is on.
+    #[test]
+    fn a_damaged_state_is_no_mix() {
+        let mut d = with_mixer(picked());
+        d.ir_mix = Some(IrMixState { base: picked(), mix: "nope".into() });
+        assert_eq!(active_ir_mix(&d), None);
+        choose_ir_mix(&mut d, IrMix::SwapGB).unwrap();
+        assert_eq!(d.channel_mixer, apply_ir_mix(IrMix::SwapGB, &picked()).unwrap().0);
     }
 }

@@ -2,7 +2,7 @@
 //! picker and swap. One call from `edit.rs` keeps the fork's footprint in upstream files small.
 
 use egui::Ui;
-use lightcraft_pipeline::ir_swap::IrMix;
+use lightcraft_pipeline::ir_swap::{IrMix, active_ir_mix};
 use serde_json::json;
 
 use crate::LightcraftApp;
@@ -21,12 +21,14 @@ fn run(app: &mut LightcraftApp, ui: &Ui, command: &str, params: serde_json::Valu
     }
 }
 
-/// The sRGB swap, a toggle for the other infrared mixes, and those mixes when open (state per session).
+/// The sRGB swap, a toggle for the other infrared mixes, and those mixes when open (state per session). The IR mix
+/// that is on is drawn selected: clicking it again turns it off, clicking another replaces it.
 pub fn buttons(app: &mut LightcraftApp, ui: &mut Ui) {
     let open_id = egui::Id::unique("irMixesOpen");
     let open: bool = ui.data(|m| m.get_temp(open_id)).unwrap_or(false);
+    let on = app.session.active().and_then(|id| app.session.develop_of(id)).and_then(|d| active_ir_mix(&d));
     ui.horizontal_wrapped(|ui| {
-        if text_button(ui, "mixerSwapRBsRGB", "Swap Red and Blue (sRGB)", false).clicked() {
+        if text_button(ui, "mixerSwapRBsRGB", "Swap Red and Blue (sRGB)", on == Some(IrMix::SwapRB)).clicked() {
             run(app, ui, "develop.mixerSwapRBsRGB", json!({}));
         }
         if text_button(ui, "irMixes", "More IR mixes", open).clicked() {
@@ -41,7 +43,7 @@ pub fn buttons(app: &mut LightcraftApp, ui: &mut Ui) {
                 if mix == IrMix::SwapRB {
                     continue;
                 }
-                if text_button(ui, &format!("irMix:{id}"), label, false).clicked() {
+                if text_button(ui, &format!("irMix:{id}"), label, on == Some(mix)).clicked() {
                     run(app, ui, "develop.mixerIrMix", json!({"mix": id}));
                 }
             }

@@ -128,7 +128,7 @@ impl SettingsGroup {
             SettingsGroup::Spots => &["spots"],
             SettingsGroup::RedEye => &["red_eye"],
             SettingsGroup::LensBlur => &["lens_blur"],
-            SettingsGroup::ChannelMixer => &["channel_mixer"],
+            SettingsGroup::ChannelMixer => &["channel_mixer", "ir_mix"],
             SettingsGroup::Calibration => &["calibration"],
         }
     }
