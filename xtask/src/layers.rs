@@ -44,6 +44,7 @@ pub const TABLE: &[(&str, Class)] = &[
     ("denoise-core", Class::Layer(1)),
     ("denoise", Class::Layer(1)),
     ("heif", Class::Layer(0)),
+    ("nikon-he", Class::Standalone), // IR fork
     ("raw", Class::Layer(1)),
     ("codecs", Class::Layer(1)),
     ("meta", Class::Layer(1)),

@@ -45,6 +45,8 @@ lightcraft-ui-egui = { path = "crates/ui-egui" }
 lightcraft-mcp = { path = "crates/mcp" }
 lightcraft-fetch = { path = "crates/fetch" }
 lightcraft-heif = { path = "crates/heif" }
+# IR fork: Nikon HE NEF through a local LibRaw build (optional, see crates/nikon-he)
+lightcraft-nikon-he = { path = "crates/nikon-he" }
 lightcraft-segment = { path = "crates/segment" }
 lightcraft-geocode = { path = "crates/geocode" }
 lightcraft-slideshow = { path = "crates/slideshow" }

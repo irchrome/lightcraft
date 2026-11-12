@@ -237,6 +237,7 @@ fn corpus_nef_compressed_matches_uncompressed() {
 /// maker note 0x003d (14-bit units): after subtracting the black level and scaling to white, the two must agree.
 /// Issue #193: the Z f's High Efficiency NEF (no `0x0096` table, a JPEG XS codestream) is named as such and keeps a
 /// full-size embedded JPEG to edit, while the same body's Lossless compressed NEF decodes.
+#[cfg(not(feature = "nikon-he"))] // IR fork: with `nikon-he` the HE file decodes (tests/nikon_he.rs)
 #[test]
 fn corpus_nef_high_efficiency_is_named() {
     let dir = corpus_root().join("raw");

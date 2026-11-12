@@ -3597,6 +3597,7 @@ dependencies = [
  "lightcraft-codecs",
  "lightcraft-engine",
  "lightcraft-raster",
+ "lightcraft-raw",
  "lightcraft-sysmem",
  "lightcraft-testkit",
  "lightcraft-ui-egui",
@@ -3647,6 +3648,7 @@ dependencies = [
  "lightcraft-mcp",
  "lightcraft-merge",
  "lightcraft-raster",
+ "lightcraft-raw",
  "lightcraft-sysmem",
  "lightcraft-testkit",
  "lightcraft-ui-egui",
@@ -3920,6 +3922,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "lightcraft-nikon-he"
+version = "0.21.0"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "lightcraft-pipeline"
 version = "0.21.0"
 dependencies = [
@@ -3974,6 +3983,7 @@ dependencies = [
  "lightcraft-color",
  "lightcraft-geom",
  "lightcraft-meta",
+ "lightcraft-nikon-he",
  "lightcraft-raster",
  "lightcraft-testkit",
  "lightcraft-tiff",

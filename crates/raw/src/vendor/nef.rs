@@ -467,6 +467,9 @@ fn compressed(bytes: &[u8], info: &ImageInfo, mn: Option<&makernote::MakerNote>,
         start.and_then(|o| bytes.get(o..o.checked_add(magic.len())?)) == Some(magic)
     };
     if starts_with(&JPEG_XS_START) {
+        #[cfg(feature = "nikon-he")]
+        return high_efficiency(bytes, info, rows);
+        #[cfg(not(feature = "nikon-he"))]
         return Err(RawError::Unsupported(HIGH_EFFICIENCY.into()));
     }
     let Some(table) = mn.and_then(|m| Some((m.ifd.bytes(LINEARIZATION_TABLE)?, m.order))) else {
@@ -484,6 +487,21 @@ fn compressed(bytes: &[u8], info: &ImageInfo, mn: Option<&makernote::MakerNote>,
     let src = usize::try_from(first.offset).ok().zip(usize::try_from(end).ok()).and_then(|(a, b)| bytes.get(a..b));
     let src = src.ok_or_else(|| RawError::Corrupt("NEF: image data outside the file".into()))?;
     Ok(RawData::U16(nefc::decode_rows(src, info.width as usize, info.height as usize, rows, bits, &table)?))
+}
+
+/// IR fork: a High Efficiency strip decoded by the local LibRaw build (`crates/nikon-he`). LibRaw returns the
+/// whole sensor as stored; the levels, white balance, colour and crop still come from this reader. The probe gets
+/// the same decode cut to its rows (the masked-column test reads them).
+#[cfg(feature = "nikon-he")]
+fn high_efficiency(bytes: &[u8], info: &ImageInfo, rows: usize) -> Result<RawData> {
+    let (w, h) = (info.width as usize, info.height as usize);
+    let m = lightcraft_nikon_he::decode(bytes).map_err(|e| RawError::Unsupported(format!("{HIGH_EFFICIENCY}: {e}")))?;
+    if (m.width, m.height) != (w, h) || m.samples.len() != w * h {
+        return Err(RawError::Unsupported(format!("{HIGH_EFFICIENCY}: LibRaw gave {}x{}, the NEF states {w}x{h}", m.width, m.height)));
+    }
+    let mut samples = m.samples;
+    samples.truncate(rows.min(h) * w);
+    Ok(RawData::U16(samples))
 }
 
 /// A table-less "compressed" strip: packed samples when the strip size matches a measured layout exactly.
@@ -1073,7 +1091,8 @@ mod tests {
         let bytes = nef(34713, 14, vec![strip], 8, 8, 8);
         for result in [crate::decode(&bytes).map(|_| ()), crate::probe_info(&bytes).map(|_| ())] {
             let Err(RawError::Unsupported(why)) = result else { panic!("expected unsupported") };
-            assert_eq!(why, HIGH_EFFICIENCY);
+            // IR fork: with `nikon-he` a failed LibRaw decode appends its error after the same reason
+            assert!(why.starts_with(HIGH_EFFICIENCY), "{why}");
             assert!(why.starts_with("Nikon High Efficiency NEF ("), "{why}");
         }
         // a strip too short to hold the markers is still the missing-table case, not a panic

@@ -1,0 +1,13 @@
+[package]
+name = "lightcraft-nikon-he"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "IR fork: Nikon High Efficiency NEF (HE / HE*) sensor data through a local LibRaw build (optional, off by default)"
+publish = false
+
+[lints]
+workspace = true
+
+[build-dependencies]
+cc = "1"
