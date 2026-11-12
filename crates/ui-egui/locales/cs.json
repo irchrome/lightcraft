@@ -2519,5 +2519,13 @@
   "Next": "Další",
   "Get Started": "Začít",
   "Stopped at the scan limit: there may be more photos": "Zastaveno na limitu skenování: je možné, že existují další fotografie",
-  "Swap Red and Blue (sRGB)": "Prohodit červenou a modrou (sRGB)"
+  "Swap Red and Blue (sRGB)": "Prohodit červenou a modrou (sRGB)",
+  "More IR mixes": "Další IR mixy",
+  "Red ↔ Green": "Červená ↔ zelená",
+  "Green ↔ Blue": "Zelená ↔ modrá",
+  "Rotate R → G → B": "Rotace R → G → B",
+  "Rotate R → B → G": "Rotace R → B → G",
+  "Red ↔ Blue 70 %": "Červená ↔ modrá 70 %",
+  "Red ↔ Blue 30 %": "Červená ↔ modrá 30 %",
+  "Mono from Red (IR)": "Mono z červené (IR)"
 }

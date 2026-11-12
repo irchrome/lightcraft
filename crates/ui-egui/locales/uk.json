@@ -2469,5 +2469,13 @@
   "Welcome": "Ласкаво просимо",
   "Next": "Далі",
   "Get Started": "Почати",
-  "Swap Red and Blue (sRGB)": "Поміняти місцями червоний і синій (sRGB)"
+  "Swap Red and Blue (sRGB)": "Поміняти місцями червоний і синій (sRGB)",
+  "More IR mixes": "Інші ІЧ-мікси",
+  "Red ↔ Green": "Червоний ↔ зелений",
+  "Green ↔ Blue": "Зелений ↔ синій",
+  "Rotate R → G → B": "Зсув R → G → B",
+  "Rotate R → B → G": "Зсув R → B → G",
+  "Red ↔ Blue 70 %": "Червоний ↔ синій 70 %",
+  "Red ↔ Blue 30 %": "Червоний ↔ синій 30 %",
+  "Mono from Red (IR)": "Ч/б з червоного (ІЧ)"
 }

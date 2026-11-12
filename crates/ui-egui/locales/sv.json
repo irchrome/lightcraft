@@ -2534,5 +2534,13 @@
   "Tool strip": "Verktygsfält",
   "Bottom bar": "Nedre fältet",
   "Stopped at the scan limit: there may be more photos": "Stoppade vid skanningsgränsen: det kan finnas fler foton",
-  "Swap Red and Blue (sRGB)": "Byt rött och blått (sRGB)"
+  "Swap Red and Blue (sRGB)": "Byt rött och blått (sRGB)",
+  "More IR mixes": "Fler IR-mixar",
+  "Red ↔ Green": "Rött ↔ grönt",
+  "Green ↔ Blue": "Grönt ↔ blått",
+  "Rotate R → G → B": "Rotera R → G → B",
+  "Rotate R → B → G": "Rotera R → B → G",
+  "Red ↔ Blue 70 %": "Rött ↔ blått 70 %",
+  "Red ↔ Blue 30 %": "Rött ↔ blått 30 %",
+  "Mono from Red (IR)": "Mono från rött (IR)"
 }

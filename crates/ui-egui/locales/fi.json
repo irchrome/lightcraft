@@ -2430,5 +2430,13 @@
   "Tool strip": "Työkalupalkki",
   "Bottom bar": "Alapalkki",
   "Stopped at the scan limit: there may be more photos": "Skannauksen raja saavutettiin: valokuvia voi olla lisää",
-  "Swap Red and Blue (sRGB)": "Vaihda punainen ja sininen keskenään (sRGB)"
+  "Swap Red and Blue (sRGB)": "Vaihda punainen ja sininen keskenään (sRGB)",
+  "More IR mixes": "Lisää IR-sekoituksia",
+  "Red ↔ Green": "Punainen ↔ vihreä",
+  "Green ↔ Blue": "Vihreä ↔ sininen",
+  "Rotate R → G → B": "Kierrä R → G → B",
+  "Rotate R → B → G": "Kierrä R → B → G",
+  "Red ↔ Blue 70 %": "Punainen ↔ sininen 70 %",
+  "Red ↔ Blue 30 %": "Punainen ↔ sininen 30 %",
+  "Mono from Red (IR)": "Mono punaisesta (IR)"
 }

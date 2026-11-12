@@ -2444,5 +2444,13 @@
   "Tool strip": "Bilah alat",
   "Bottom bar": "Bilah bawah",
   "Stopped at the scan limit: there may be more photos": "Berhenti pada batas pemindaian: mungkin masih ada foto",
-  "Swap Red and Blue (sRGB)": "Tukar merah dan biru (sRGB)"
+  "Swap Red and Blue (sRGB)": "Tukar merah dan biru (sRGB)",
+  "More IR mixes": "Campuran IR lainnya",
+  "Red ↔ Green": "Merah ↔ hijau",
+  "Green ↔ Blue": "Hijau ↔ biru",
+  "Rotate R → G → B": "Putar R → G → B",
+  "Rotate R → B → G": "Putar R → B → G",
+  "Red ↔ Blue 70 %": "Merah ↔ biru 70 %",
+  "Red ↔ Blue 30 %": "Merah ↔ biru 30 %",
+  "Mono from Red (IR)": "Mono dari merah (IR)"
 }

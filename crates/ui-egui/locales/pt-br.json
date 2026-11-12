@@ -2317,5 +2317,13 @@
   "Welcome": "Bem-vindo",
   "Next": "Próximo",
   "Get Started": "Começar",
-  "Swap Red and Blue (sRGB)": "Trocar vermelho e azul (sRGB)"
+  "Swap Red and Blue (sRGB)": "Trocar vermelho e azul (sRGB)",
+  "More IR mixes": "Mais misturas IR",
+  "Red ↔ Green": "Vermelho ↔ verde",
+  "Green ↔ Blue": "Verde ↔ azul",
+  "Rotate R → G → B": "Girar R → G → B",
+  "Rotate R → B → G": "Girar R → B → G",
+  "Red ↔ Blue 70 %": "Vermelho ↔ azul 70 %",
+  "Red ↔ Blue 30 %": "Vermelho ↔ azul 30 %",
+  "Mono from Red (IR)": "Mono do vermelho (IR)"
 }

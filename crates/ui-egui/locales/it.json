@@ -2637,5 +2637,13 @@
   "Next": "Avanti",
   "Get Started": "Inizia",
   "Stopped at the scan limit: there may be more photos": "Fermati al limite di scansione: potrebbero esserci altre foto",
-  "Swap Red and Blue (sRGB)": "Scambia rosso e blu (sRGB)"
+  "Swap Red and Blue (sRGB)": "Scambia rosso e blu (sRGB)",
+  "More IR mixes": "Altri mix IR",
+  "Red ↔ Green": "Rosso ↔ verde",
+  "Green ↔ Blue": "Verde ↔ blu",
+  "Rotate R → G → B": "Ruota R → G → B",
+  "Rotate R → B → G": "Ruota R → B → G",
+  "Red ↔ Blue 70 %": "Rosso ↔ blu 70 %",
+  "Red ↔ Blue 30 %": "Rosso ↔ blu 30 %",
+  "Mono from Red (IR)": "Mono dal rosso (IR)"
 }

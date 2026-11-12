@@ -2758,5 +2758,13 @@
   "Tool strip": "Thanh công cụ",
   "Bottom bar": "Thanh dưới cùng",
   "Stopped at the scan limit: there may be more photos": "Đã dừng ở giới hạn quét: có thể còn ảnh khác",
-  "Swap Red and Blue (sRGB)": "Hoán đổi đỏ và lam (sRGB)"
+  "Swap Red and Blue (sRGB)": "Hoán đổi đỏ và lam (sRGB)",
+  "More IR mixes": "Thêm kiểu trộn IR",
+  "Red ↔ Green": "Đỏ ↔ lục",
+  "Green ↔ Blue": "Lục ↔ lam",
+  "Rotate R → G → B": "Xoay R → G → B",
+  "Rotate R → B → G": "Xoay R → B → G",
+  "Red ↔ Blue 70 %": "Đỏ ↔ lam 70 %",
+  "Red ↔ Blue 30 %": "Đỏ ↔ lam 30 %",
+  "Mono from Red (IR)": "Đơn sắc từ đỏ (IR)"
 }

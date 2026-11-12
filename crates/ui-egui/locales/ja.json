@@ -2471,5 +2471,13 @@
   "Welcome": "ようこそ",
   "Next": "次へ",
   "Get Started": "始める",
-  "Swap Red and Blue (sRGB)": "赤と青を入れ替え (sRGB)"
+  "Swap Red and Blue (sRGB)": "赤と青を入れ替え (sRGB)",
+  "More IR mixes": "その他の赤外線ミックス",
+  "Red ↔ Green": "赤 ↔ 緑",
+  "Green ↔ Blue": "緑 ↔ 青",
+  "Rotate R → G → B": "回転 R → G → B",
+  "Rotate R → B → G": "回転 R → B → G",
+  "Red ↔ Blue 70 %": "赤 ↔ 青 70 %",
+  "Red ↔ Blue 30 %": "赤 ↔ 青 30 %",
+  "Mono from Red (IR)": "赤から白黒 (IR)"
 }

@@ -411,13 +411,9 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
                 {
                     app.toast(ui.ctx(), e);
                 }
-                // fork (infrared): the swap between sRGB primaries, see `lightcraft_pipeline::ir_swap`
-                if crate::widgets::text_button(ui, "mixerSwapRBsRGB", "Swap Red and Blue (sRGB)", false).clicked()
-                    && let Err(e) = app.run("develop.mixerSwapRBsRGB", json!({}))
-                {
-                    app.toast(ui.ctx(), e);
-                }
             });
+            // fork (infrared): mixes between sRGB primaries, see `panels/ir_mix.rs`
+            super::ir_mix::buttons(app, ui);
         });
         for (title, k) in [("Red Output", "red"), ("Green Output", "green"), ("Blue Output", "blue")] {
             sub_title(ui, title);

@@ -2396,5 +2396,13 @@
   "Next": "Dalej",
   "Get Started": "Zaczynamy",
   "Stopped at the scan limit: there may be more photos": "Zatrzymano na limicie skanowania: możliwe, że jest więcej zdjęć",
-  "Swap Red and Blue (sRGB)": "Zamień czerwony i niebieski (sRGB)"
+  "Swap Red and Blue (sRGB)": "Zamień czerwony i niebieski (sRGB)",
+  "More IR mixes": "Więcej miksów IR",
+  "Red ↔ Green": "Czerwony ↔ zielony",
+  "Green ↔ Blue": "Zielony ↔ niebieski",
+  "Rotate R → G → B": "Obrót R → G → B",
+  "Rotate R → B → G": "Obrót R → B → G",
+  "Red ↔ Blue 70 %": "Czerwony ↔ niebieski 70 %",
+  "Red ↔ Blue 30 %": "Czerwony ↔ niebieski 30 %",
+  "Mono from Red (IR)": "Mono z czerwonego (IR)"
 }

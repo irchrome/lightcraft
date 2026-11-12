@@ -3739,5 +3739,13 @@
   "Bottom bar": "ქვედა ზოლი",
   "Prevent G-SYNC/FreeSync flicker (applies at next launch)": "G-SYNC/FreeSync-ის ციმციმის თავიდან აცილება (ამოქმედდება შემდეგი გაშვებისას)",
   "Stopped at the scan limit: there may be more photos": "სკანირების ლიმიტზე გაჩერდა: შესაძლოა სხვა ფოტოებიც არის",
-  "Swap Red and Blue (sRGB)": "წითლისა და ლურჯის გაცვლა (sRGB)"
+  "Swap Red and Blue (sRGB)": "წითლისა და ლურჯის გაცვლა (sRGB)",
+  "More IR mixes": "სხვა IR მიქსები",
+  "Red ↔ Green": "წითელი ↔ მწვანე",
+  "Green ↔ Blue": "მწვანე ↔ ლურჯი",
+  "Rotate R → G → B": "ბრუნვა R → G → B",
+  "Rotate R → B → G": "ბრუნვა R → B → G",
+  "Red ↔ Blue 70 %": "წითელი ↔ ლურჯი 70 %",
+  "Red ↔ Blue 30 %": "წითელი ↔ ლურჯი 30 %",
+  "Mono from Red (IR)": "მონო წითლიდან (IR)"
 }

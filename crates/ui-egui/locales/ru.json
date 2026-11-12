@@ -2679,5 +2679,13 @@
   "Welcome": "Добро пожаловать",
   "Next": "Далее",
   "Get Started": "Начать",
-  "Swap Red and Blue (sRGB)": "Поменять красный и синий (sRGB)"
+  "Swap Red and Blue (sRGB)": "Поменять красный и синий (sRGB)",
+  "More IR mixes": "Другие ИК-миксы",
+  "Red ↔ Green": "Красный ↔ зелёный",
+  "Green ↔ Blue": "Зелёный ↔ синий",
+  "Rotate R → G → B": "Сдвиг R → G → B",
+  "Rotate R → B → G": "Сдвиг R → B → G",
+  "Red ↔ Blue 70 %": "Красный ↔ синий 70 %",
+  "Red ↔ Blue 30 %": "Красный ↔ синий 30 %",
+  "Mono from Red (IR)": "Ч/б из красного (ИК)"
 }

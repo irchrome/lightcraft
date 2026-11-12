@@ -2472,5 +2472,13 @@
   "Welcome": "欢迎",
   "Next": "下一步",
   "Get Started": "开始使用",
-  "Swap Red and Blue (sRGB)": "交换红色和蓝色 (sRGB)"
+  "Swap Red and Blue (sRGB)": "交换红色和蓝色 (sRGB)",
+  "More IR mixes": "更多红外混合",
+  "Red ↔ Green": "红 ↔ 绿",
+  "Green ↔ Blue": "绿 ↔ 蓝",
+  "Rotate R → G → B": "轮换 R → G → B",
+  "Rotate R → B → G": "轮换 R → B → G",
+  "Red ↔ Blue 70 %": "红 ↔ 蓝 70 %",
+  "Red ↔ Blue 30 %": "红 ↔ 蓝 30 %",
+  "Mono from Red (IR)": "取红色单色 (红外)"
 }
