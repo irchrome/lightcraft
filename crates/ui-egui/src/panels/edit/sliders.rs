@@ -106,7 +106,8 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         ui.label(egui::RichText::new(crate::i18n::tr(s)).font(t.semibold(11.5)).color(t.text_dim));
     };
     for (title, key, ids) in [("Favorites", "fav", app.session.profile_favorites.clone()), ("Recent", "recent", app.session.profile_recent.clone())] {
-        let list: Vec<_> = ids.iter().filter_map(|id| app.session.profile_info(id).map(|(name, _)| (id.as_str(), name))).collect();
+        let list: Vec<_> =
+            ids.iter().filter_map(|id| app.session.profile_info_for(id, app.session.active()).map(|(name, _)| (id.as_str(), name))).collect();
         if list.is_empty() {
             continue;
         }
@@ -131,7 +132,7 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         }
     }
     // imported profile groups: LUT folders, then camera profiles
-    let imported = app.session.imported_profiles();
+    let imported = app.session.imported_profiles_for(app.session.active());
     let mut lut_groups: Vec<String> = Vec::new();
     for (_, _, g) in &imported {
         if !lut_groups.contains(g) {

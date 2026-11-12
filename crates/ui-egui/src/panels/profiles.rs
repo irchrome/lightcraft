@@ -49,7 +49,7 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         .session
         .profile_favorites
         .iter()
-        .filter_map(|f| app.session.profile_info(f).map(|(name, group)| (f.clone(), name.to_string(), group.to_string())))
+        .filter_map(|f| app.session.profile_info_for(f, Some(id)).map(|(name, group)| (f.clone(), name.to_string(), group.to_string())))
         .collect();
     if !favs.is_empty() {
         sections.push(("Favorites", "fav", false, favs));
@@ -63,7 +63,7 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         ));
     }
     // imported profile groups: LUT folders, then camera profiles
-    let imported = app.session.imported_profiles();
+    let imported = app.session.imported_profiles_for(Some(id));
     let mut lut_groups: Vec<String> = Vec::new();
     for (_, _, g) in &imported {
         if !lut_groups.contains(g) {

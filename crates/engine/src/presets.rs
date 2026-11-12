@@ -577,7 +577,7 @@ impl Session {
     pub fn profile_menu(&self) -> Value {
         let item =
             |p: &ProfileInfo| json!({"id": p.id, "name": p.name, "group": p.group, "favorite": self.profile_favorites.iter().any(|f| f == p.id)});
-        let imported = self.imported_profiles();
+        let imported = self.imported_profiles_for(self.active());
         let imported_item = |(id, name, group): &(String, String, String)| {
             let mut v = json!({"id": id, "name": name, "group": group, "favorite": self.profile_favorites.contains(id), "imported": true});
             if let Some(d) = self.dcp_profiles.iter().find(|d| &d.id == id) {

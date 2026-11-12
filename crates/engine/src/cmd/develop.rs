@@ -893,6 +893,7 @@ pub fn specs() -> Vec<CommandSpec> {
             if crate::cmd::dcp_profiles::is_dcp_id(&id) && !s.media.camera_profiles.contains_key(&id) {
                 return Err(bad("develop.profile", format!("camera profile `{id}` can't be used: its file is missing or damaged")));
             }
+            crate::ir_profiles::refuse_unfit(s, "develop.profile", &id, active(s, "develop.profile")?)?;
             edit(s, "develop.profile", "Profile", |d| {
                 d.profile.id = id.clone();
                 d.profile.amount = f64_or(p, "amount", d.profile.amount).clamp(0.0, 200.0);
