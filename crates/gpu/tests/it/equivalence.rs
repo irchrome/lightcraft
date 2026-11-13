@@ -557,6 +557,14 @@ fn cases() -> Vec<(&'static str, Edit)> {
             s.channel_mixer.green.red = -30.0;
             s.calibration.red_hue = 30.0;
         }),
+        ("IR fork: swap far out of gamut (soft gamut compression)", |s| {
+            // channels driven strongly negative, as a foliage-balanced infrared sky: ir_gamut compresses on both
+            s.channel_mixer.red.red = -60.0;
+            s.channel_mixer.red.blue = 160.0;
+            s.channel_mixer.blue.blue = -50.0;
+            s.channel_mixer.blue.red = 150.0;
+            s.color.saturation = 40.0;
+        }),
         ("spots + defringe", |s| {
             s.spots = vec![Spot { points: vec![Point::new(0.3, 0.3)], size: 0.03, source_offset: Some(Point::new(0.1, 0.0)), ..Default::default() }];
             s.optics.defringe_purple_amount = 5.0;

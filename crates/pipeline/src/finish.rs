@@ -236,6 +236,8 @@ pub fn mask_terms(j: &LocalAdjustments) -> [f32; MASK_TERMS] {
 /// Everything the per-pixel stage computes once per render: the CPU loop below and the GPU kernel
 /// (`lightcraft-gpu`) both read their parameters from here, so the two cannot drift apart.
 pub struct FinishParams {
+    /// IR fork: soft gamut compression for infrared edits ([`crate::ir_gamut`]).
+    pub ir_gamut: bool,
     /// A LUT profile and its amount (0..2), applied to the display-encoded colour.
     pub lut: Option<(std::sync::Arc<crate::lut::Lut3d>, f32)>,
     pub tone: ToneMap,
@@ -328,6 +330,7 @@ impl FinishParams {
         let calibration = s.section_enabled("calibration");
         let peak = s.hdr.peak();
         FinishParams {
+            ir_gamut: crate::ir_gamut::active(s), // IR fork
             peak,
             // the channel mixer and the calibration primaries, composed (each only when its section is on)
             calib: crate::colorops::scene_colour_matrix(s),
@@ -539,7 +542,7 @@ pub(crate) fn finish_with<T: Copy + Default + Send>(
 
             // --- calibration (scene linear, before the tone map)
             if fp.calib.is_some() || fp.shadow_tint != 0.0 {
-                c = crate::colorops::calibrate(c, fp.calib.as_ref(), fp.shadow_tint);
+                c = crate::ir_gamut::calibrate(c, fp.calib.as_ref(), fp.shadow_tint, fp.ir_gamut); // IR fork
             }
 
             // --- tone map on luminance, highlight desaturation
@@ -617,6 +620,7 @@ pub(crate) fn finish_with<T: Copy + Default + Send>(
                 }
                 None => mul3(to_out, d),
             };
+            r = crate::ir_gamut::output(r, fp.ir_gamut); // IR fork: soft, before the hard map below
             let (mapped, t) = gamut_map_to(r, *out_luma, peak);
             if fp.proof.as_ref().is_some_and(|pp| pp.display_warning) && warn.is_none() && out_of_gamut(r, t) {
                 warn = Some(crate::output::PROOF_DISPLAY_WARNING);
