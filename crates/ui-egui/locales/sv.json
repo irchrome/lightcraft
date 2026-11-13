@@ -2542,5 +2542,8 @@
   "Rotate R → B → G": "Rotera R → B → G",
   "Red ↔ Blue 70 %": "Rött ↔ blått 70 %",
   "Red ↔ Blue 30 %": "Rött ↔ blått 30 %",
-  "Mono from Red (IR)": "Mono från rött (IR)"
+  "Mono from Red (IR)": "Mono från rött (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR – en fork för infraröd fotografi.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Lägger till byte av rött och blått och infraröda kanalmixar i sRGB, kameraprofiler knutna till sin kamera och rådata från Nikon High Efficiency NEF-filer.",
+  "IR fork on GitHub": "IR-fork på GitHub"
 }

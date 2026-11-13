@@ -2452,5 +2452,8 @@
   "Rotate R → B → G": "Putar R → B → G",
   "Red ↔ Blue 70 %": "Merah ↔ biru 70 %",
   "Red ↔ Blue 30 %": "Merah ↔ biru 30 %",
-  "Mono from Red (IR)": "Mono dari merah (IR)"
+  "Mono from Red (IR)": "Mono dari merah (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — fork untuk fotografi inframerah.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Menambahkan tukar merah/biru dan campuran kanal inframerah di sRGB, profil kamera yang terikat ke kameranya, dan data raw dari file Nikon High Efficiency NEF.",
+  "IR fork on GitHub": "Fork IR di GitHub"
 }

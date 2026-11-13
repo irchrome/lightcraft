@@ -2481,5 +2481,8 @@
   "Rotate R → B → G": "Rotar R → B → G",
   "Red ↔ Blue 70 %": "Rojo ↔ azul 70 %",
   "Red ↔ Blue 30 %": "Rojo ↔ azul 30 %",
-  "Mono from Red (IR)": "Mono desde rojo (IR)"
+  "Mono from Red (IR)": "Mono desde rojo (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR: un fork para fotografía infrarroja.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Añade intercambio de rojo y azul y mezclas de canales infrarrojas en sRGB, perfiles de cámara vinculados a su cámara y datos RAW de archivos NEF Nikon High Efficiency.",
+  "IR fork on GitHub": "Fork IR en GitHub"
 }

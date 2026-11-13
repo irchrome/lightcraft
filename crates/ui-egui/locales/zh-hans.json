@@ -2480,5 +2480,8 @@
   "Rotate R → B → G": "轮换 R → B → G",
   "Red ↔ Blue 70 %": "红 ↔ 蓝 70 %",
   "Red ↔ Blue 30 %": "红 ↔ 蓝 30 %",
-  "Mono from Red (IR)": "取红色单色 (红外)"
+  "Mono from Red (IR)": "取红色单色 (红外)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — 面向红外摄影的分支。",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "新增 sRGB 中的红蓝互换与红外通道混合、与所属相机绑定的相机配置文件，以及 Nikon High Efficiency NEF 文件的原始数据。",
+  "IR fork on GitHub": "GitHub 上的红外分支"
 }

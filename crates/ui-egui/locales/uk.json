@@ -2477,5 +2477,8 @@
   "Rotate R → B → G": "Зсув R → B → G",
   "Red ↔ Blue 70 %": "Червоний ↔ синій 70 %",
   "Red ↔ Blue 30 %": "Червоний ↔ синій 30 %",
-  "Mono from Red (IR)": "Ч/б з червоного (ІЧ)"
+  "Mono from Red (IR)": "Ч/б з червоного (ІЧ)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — форк для інфрачервоної фотографії.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Додає обмін червоного й синього та ІЧ-мікси каналів у sRGB, профілі камер із прив’язкою до своєї камери та RAW-дані з файлів Nikon High Efficiency NEF.",
+  "IR fork on GitHub": "ІЧ-форк на GitHub"
 }

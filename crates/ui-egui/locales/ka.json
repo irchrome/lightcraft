@@ -3747,5 +3747,8 @@
   "Rotate R → B → G": "ბრუნვა R → B → G",
   "Red ↔ Blue 70 %": "წითელი ↔ ლურჯი 70 %",
   "Red ↔ Blue 30 %": "წითელი ↔ ლურჯი 30 %",
-  "Mono from Red (IR)": "მონო წითლიდან (IR)"
+  "Mono from Red (IR)": "მონო წითლიდან (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — ინფრაწითელი ფოტოგრაფიის ფორკი.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "ამატებს წითლისა და ლურჯის გაცვლას და ინფრაწითელ არხების მიქსებს sRGB-ში, საკუთარ კამერაზე მიბმულ კამერის პროფილებს და RAW მონაცემებს Nikon High Efficiency NEF ფაილებიდან.",
+  "IR fork on GitHub": "IR ფორკი GitHub-ზე"
 }

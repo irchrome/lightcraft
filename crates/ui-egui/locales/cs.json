@@ -2527,5 +2527,8 @@
   "Rotate R → B → G": "Rotace R → B → G",
   "Red ↔ Blue 70 %": "Červená ↔ modrá 70 %",
   "Red ↔ Blue 30 %": "Červená ↔ modrá 30 %",
-  "Mono from Red (IR)": "Mono z červené (IR)"
+  "Mono from Red (IR)": "Mono z červené (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — fork pro infračervenou fotografii.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Přidává záměnu červené a modré a infračervené mixy kanálů v sRGB, profily fotoaparátů vázané na svůj fotoaparát a data RAW ze souborů Nikon High Efficiency NEF.",
+  "IR fork on GitHub": "IR fork na GitHubu"
 }

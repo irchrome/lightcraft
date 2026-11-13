@@ -2044,6 +2044,7 @@ fn about_body(app: &mut LightcraftApp, ui: &mut egui::Ui, t: &Tokens, dlg: &mut 
         _ => {
             ui.label(egui::RichText::new("LightCraft").font(t.semibold(20.0)).color(t.text));
             ui.label(crate::i18n::tr_format!("Version {} — a clean-room, pure-Rust photo library and raw developer.", env!("CARGO_PKG_VERSION")));
+            crate::ir_fork::about_ui(app, ui, t); // IR fork
             ui.label(crate::i18n::tr_format!(
                 "MIT OR Apache-2.0. Fonts: {} (OFL). Icons: original.",
                 crate::theme::font_credits(app.chinese_font.is_some())

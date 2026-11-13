@@ -2766,5 +2766,8 @@
   "Rotate R → B → G": "Xoay R → B → G",
   "Red ↔ Blue 70 %": "Đỏ ↔ lam 70 %",
   "Red ↔ Blue 30 %": "Đỏ ↔ lam 30 %",
-  "Mono from Red (IR)": "Đơn sắc từ đỏ (IR)"
+  "Mono from Red (IR)": "Đơn sắc từ đỏ (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — bản fork cho nhiếp ảnh hồng ngoại.",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Thêm hoán đổi đỏ/xanh lam và trộn kênh hồng ngoại trong sRGB, hồ sơ máy gắn với đúng máy ảnh, và dữ liệu raw từ tệp Nikon High Efficiency NEF.",
+  "IR fork on GitHub": "Bản fork IR trên GitHub"
 }

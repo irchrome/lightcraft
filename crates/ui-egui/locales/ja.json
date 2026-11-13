@@ -2479,5 +2479,8 @@
   "Rotate R → B → G": "回転 R → B → G",
   "Red ↔ Blue 70 %": "赤 ↔ 青 70 %",
   "Red ↔ Blue 30 %": "赤 ↔ 青 30 %",
-  "Mono from Red (IR)": "赤から白黒 (IR)"
+  "Mono from Red (IR)": "赤から白黒 (IR)",
+  "LightCraft IR — a fork for infrared photography.": "LightCraft IR — 赤外線写真のためのフォーク。",
+  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "sRGB での赤/青の入れ替えと赤外線チャンネルミックス、撮影したカメラに紐づくカメラプロファイル、Nikon High Efficiency NEF ファイルの RAW データを追加します。",
+  "IR fork on GitHub": "GitHub の IR フォーク"
 }
