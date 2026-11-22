@@ -65,6 +65,7 @@ fi
 WORK="$CARGO_TARGET_DIR/macos-ir-bundle"
 APP="$WORK/LightCraft IR.app"
 rm -rf "$WORK"
+trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Licenses"
 
 cp "$BIN" "$APP/Contents/MacOS/LightCraft IR"
