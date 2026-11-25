@@ -142,9 +142,10 @@ fn relink(s: &mut Session, p: &Value) -> Result<Value> {
     // its size, dimensions and preview-only state follow it
     let mut ops = vec![relink_op(id, &abs)];
     if s.media.file_probe.is_some()
-        && let (Some(Ok(info)), Some(ph)) = (crate::import::probe_paths(s, std::slice::from_ref(&abs)).pop(), s.catalog.photo(id))
+        && let Some(Ok(info)) = crate::import::probe_paths(s, std::slice::from_ref(&abs)).pop()
     {
-        ops.extend(crate::cmd::convert::content_op(id, ph, info));
+        let mut changed = Vec::new();
+        crate::cmd::convert::reload_ops(&s.catalog, id, &info, &mut ops, &mut changed);
     }
     let op = match <[Op; 1]>::try_from(ops) {
         Ok([op]) => op,

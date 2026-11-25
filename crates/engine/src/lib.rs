@@ -47,6 +47,7 @@ pub mod fonts;
 pub mod guard;
 pub mod import;
 mod import_move;
+mod ir_lightroom_meta;
 pub mod ir_profiles;
 pub mod lens_profiles;
 pub mod lensfun_download;
@@ -1080,7 +1081,7 @@ impl Session {
     pub fn develop_op(&self, id: PhotoId, settings: DevelopSettings, label: &str) -> Option<Op> {
         self.catalog.photo(id)?;
         let mut settings = settings;
-        ir_profiles::keep_own_camera_profile(self, id, &mut settings);
+        ir_profiles::keep_own_camera_profile(self, id, label, &mut settings);
         // old masks (on the corrected frame) go onto the photo, from the frame they were drawn on:
         // masks this edit kept, under the photo's settings before it (a geometry edit then moves
         // the photo, not them); masks it brought in (paste, sync, a preset, a history step, a

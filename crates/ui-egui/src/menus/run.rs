@@ -1784,6 +1784,9 @@ fn find_missing_done(app: &mut LightcraftApp, ctx: &egui::Context, plan: Result<
             );
             app.ui.last_find_missing = Some(v.clone());
             app.ui.last_find_missing_result = Some(Ok(v));
+            if n > 0 {
+                app.ui.rechecked_library = None;
+            }
         }
         Err(e) => {
             app.toast(ctx, e.clone());

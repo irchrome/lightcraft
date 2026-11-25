@@ -612,6 +612,7 @@ fn read_file(path: &Path, document: &Path, source: &Path, cancel: &AtomicBool, d
     }
     let mut history = group(optional_table("Adobe_libraryImageDevelopHistoryStep", &mut warnings)?);
     let mut snapshots = group(optional_table("Adobe_libraryImageDevelopSnapshot", &mut warnings)?);
+    let mut harvested = crate::ir_lightroom_meta::read_harvested(&mut |name| reader.optional_table(name, &mut warnings))?;
     let mut out = CatalogImport {
         source: source.to_string_lossy().into(),
         catalog_id: reader.catalog_id(),
@@ -665,6 +666,8 @@ fn read_file(path: &Path, document: &Path, source: &Path, cancel: &AtomicBool, d
                 String::new()
             }
         };
+        let mut image = image;
+        crate::ir_lightroom_meta::attach_to_image(&mut image, harvested.remove(&id));
         out.photos.push(CatalogPhoto {
             source_id: id,
             uuid: text(&image, "id_global").into(),
@@ -1330,7 +1333,9 @@ pub(crate) fn apply_prepared(s: &mut crate::Session, mut data: CatalogImport, co
                 // not GPS, which placing a photo on the map does, nor the capture time, which
                 // Edit Capture Time does)
                 let m = &duplicate.meta;
+                p.meta.make = m.make.clone();
                 p.meta.camera = m.camera.clone();
+                p.meta.lens_make = m.lens_make.clone();
                 p.meta.lens = m.lens.clone();
                 p.meta.focal_mm = m.focal_mm;
                 p.meta.aperture = m.aperture;
@@ -1384,6 +1389,7 @@ pub(crate) fn apply_prepared(s: &mut crate::Session, mut data: CatalogImport, co
                 Err(e) => warnings.push(format!("image {} XMP: {e}", src.source_id)),
             }
         }
+        crate::ir_lightroom_meta::fill_photo_meta(&mut p, &src.image, &src.xmp);
         p.rating = number(&src.image, "rating").clamp(0, 5) as u8;
         p.flag = match number(&src.image, "pick") {
             1 => Flag::Pick,

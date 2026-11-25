@@ -47,7 +47,15 @@ impl Stale {
 /// the photo they were copied from). No file-system calls.
 pub fn stale(cat: &Catalog, all: bool) -> Vec<Stale> {
     cat.photos()
-        .filter(|p| p.copy_of.is_none() && (p.preview_only_stale() || (all && (p.preview_only.is_some() || p.format.eq_ignore_ascii_case("orf")))))
+        .filter(|p| {
+            p.copy_of.is_none()
+                && (p.preview_only_stale()
+                    || (p.kind == lightcraft_catalog::MediaKind::Raw
+                        && p.preview_only.is_none()
+                        && p.preview_checked.is_empty()
+                        && p.meta.camera.trim().is_empty())
+                    || (all && (p.preview_only.is_some() || p.format.eq_ignore_ascii_case("orf"))))
+        })
         .filter_map(|p| crate::cmd::missing::checked_path(p).map(|path| Stale::of(p, path)))
         .collect()
 }

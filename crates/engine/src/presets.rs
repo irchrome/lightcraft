@@ -597,9 +597,7 @@ impl Session {
         lut_groups.dedup();
         // the camera profiles' group once, last (a LUT group of the same name joins it rather than showing twice)
         lut_groups.retain(|g| *g != crate::cmd::dcp_profiles::DCP_GROUP);
-        if imported.iter().any(|p| p.2 == crate::cmd::dcp_profiles::DCP_GROUP) {
-            lut_groups.push(crate::cmd::dcp_profiles::DCP_GROUP);
-        }
+        crate::ir_profiles::append_dcp_groups(&imported, &mut lut_groups);
         for g in lut_groups {
             let profiles: Vec<Value> = imported.iter().filter(|p| p.2 == g).map(imported_item).collect();
             groups.push(json!({"name": g, "profiles": profiles, "imported": true}));

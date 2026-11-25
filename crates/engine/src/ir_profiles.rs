@@ -12,12 +12,80 @@
 //! here, `develop.profile` calls [`refuse_unfit`], and `Session::develop_op` calls
 //! [`keep_own_camera_profile`].
 
-use lightcraft_catalog::{MediaKind, Photo, PhotoId};
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+
+use lightcraft_catalog::{MediaKind, Photo, PhotoId, Source};
 use lightcraft_develop::DevelopSettings;
 
 use crate::cmd::bad;
-use crate::cmd::dcp_profiles::{DcpEntry, is_dcp_id};
+use crate::cmd::dcp_profiles::{DCP_GROUP, DcpEntry, is_dcp_id};
 use crate::{Result, Session};
+
+/// Group name shown for camera DCP profiles when a RAW has neither catalog camera metadata nor
+/// an accessible file on disk (owner decision B12=A).
+pub const DCP_UNKNOWN_CAMERA_GROUP: &str = "Camera Profiles (camera unknown)";
+
+static EXIF_CAMERA_CACHE: OnceLock<Mutex<HashMap<String, Option<(String, String)>>>> = OnceLock::new();
+
+/// Append the DCP group(s) present in `imported` to `groups`.
+pub(crate) fn append_dcp_groups(imported: &[(String, String, String)], groups: &mut Vec<&str>) {
+    for group in [DCP_GROUP, DCP_UNKNOWN_CAMERA_GROUP] {
+        if imported.iter().any(|p| p.2 == group) && !groups.contains(&group) {
+            groups.push(group);
+        }
+    }
+}
+
+/// Read at most 64 KiB from the file header to recover EXIF `(make, model)` when catalog metadata
+/// is empty (e.g. legacy Lightroom import before `recheck` finishes).
+fn read_camera_prefix(path: &str) -> Option<(String, String)> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = path;
+        return None;
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        use std::io::{Read, Seek, SeekFrom};
+        const PREFIX_BYTES: u64 = 65_536;
+        let file = crate::read_file::open_for_read(path).ok()?;
+        let meta = file.metadata().ok().filter(|m| m.is_file())?;
+        let _ = meta;
+        let mut buf = Vec::with_capacity(PREFIX_BYTES as usize);
+        file.take(PREFIX_BYTES).read_to_end(&mut buf).ok()?;
+        if buf.starts_with(b"FUJIFILMCCD-RAW")
+            && let Some(off_bytes) = buf.get(84..88)
+            && let Ok(arr) = off_bytes.try_into()
+        {
+            let offset = u64::from(u32::from_be_bytes(arr));
+            if offset > 0 && offset.saturating_add(PREFIX_BYTES) > buf.len() as u64 {
+                let mut f = crate::read_file::open_for_read(path).ok()?;
+                f.seek(SeekFrom::Start(offset)).ok()?;
+                buf.clear();
+                f.take(PREFIX_BYTES).read_to_end(&mut buf).ok()?;
+            }
+        }
+        let m = lightcraft_meta::extract(&buf);
+        let make = m.make.unwrap_or_default().trim().to_string();
+        let model = m.model.unwrap_or_default().trim().to_string();
+        (!model.is_empty()).then_some((make, model))
+    }
+}
+
+fn cached_exif_camera(path: &str) -> Option<(String, String)> {
+    let cache = EXIF_CAMERA_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Ok(guard) = cache.lock()
+        && let Some(cached) = guard.get(path)
+    {
+        return cached.clone();
+    }
+    let probed = read_camera_prefix(path);
+    if let Ok(mut guard) = cache.lock() {
+        guard.insert(path.to_string(), probed.clone());
+    }
+    probed
+}
 
 /// Lowercase ASCII letters and digits only: "NIKON Z5_2" and "Nikon Z 5 2" both become `nikonz52`.
 fn norm(s: &str) -> String {
@@ -56,24 +124,42 @@ pub fn dcp_fits(dcp_model: &str, make: Option<&str>, model: Option<&str>, unique
     [make_full, make_first].iter().any(|m| !m.is_empty() && format!("{m}{model}") == dcp)
 }
 
-/// The photo's camera as (make, model), from the catalog's `make` and `camera` ("make model");
-/// `None` for a photo that is not a raw (camera profiles don't apply to it).
-fn raw_camera(p: &Photo) -> Option<(Option<&str>, Option<&str>)> {
+/// The photo's camera as (make, model), from the catalog's `make` and `camera` ("make model")
+/// or, when empty, a cached 64 KiB EXIF header read from disk; `None` for a photo that is not a
+/// raw (camera profiles don't apply to it).
+fn raw_camera(p: &Photo) -> Option<(Option<String>, Option<String>)> {
     if p.kind != MediaKind::Raw {
         return None;
     }
     let make = p.meta.make.trim();
     let camera = p.meta.camera.trim();
     let model = if make.is_empty() { camera } else { camera.strip_prefix(make).map_or(camera, str::trim) };
-    fn some(s: &str) -> Option<&str> {
-        (!s.is_empty()).then_some(s)
+    let some = |s: &str| (!s.is_empty()).then(|| s.to_string());
+    if !model.is_empty() {
+        return Some((some(make), some(model)));
     }
-    Some((some(make), some(model)))
+    if let Source::File { path } = &p.source
+        && let Some((mk, md)) = cached_exif_camera(path)
+    {
+        return Some((some(mk.trim()), some(md.trim())));
+    }
+    Some((some(make), None))
+}
+
+/// Whether `p` is a raw whose camera could not be determined from either catalog metadata or its
+/// file on disk (e.g. an offline Lightroom stub).
+fn is_unknown_camera_raw(p: &Photo) -> bool {
+    matches!(raw_camera(p), Some((_, None)))
 }
 
 /// Whether camera profile `entry` fits photo `p` (see [`dcp_fits`]).
 fn entry_fits(entry: &DcpEntry, p: &Photo) -> bool {
-    raw_camera(p).is_some_and(|(make, model)| dcp_fits(&entry.camera_model, make, model, None))
+    raw_camera(p).is_some_and(|(make, model)| dcp_fits(&entry.camera_model, make.as_deref(), model.as_deref(), None))
+}
+
+fn unknown_camera_label(entry: &DcpEntry) -> String {
+    let model = entry.camera_model.trim();
+    if model.is_empty() { entry.name.clone() } else { format!("{} ({model})", entry.name) }
 }
 
 impl Session {
@@ -86,8 +172,20 @@ impl Session {
     }
 
     /// [`Session::imported_profiles`] for photo `photo`: every LUT profile, and only the camera profiles made for the
-    /// photo's camera (none for a photo that is not a raw, or with no photo).
+    /// photo's camera (none for a photo that is not a raw, or with no photo). For an offline raw whose camera is
+    /// still unknown, camera profiles are listed with their camera model under [`DCP_UNKNOWN_CAMERA_GROUP`].
     pub fn imported_profiles_for(&self, photo: Option<PhotoId>) -> Vec<(String, String, String)> {
+        if let Some(p) = photo.and_then(|id| self.catalog.photo(id))
+            && is_unknown_camera_raw(p)
+        {
+            let luts = self.lut_profiles.iter().map(|p| (p.id.clone(), p.name.clone(), p.group.clone()));
+            let dcps = self
+                .dcp_profiles
+                .iter()
+                .filter(|e| self.media.camera_profiles.contains_key(&e.id))
+                .map(|e| (e.id.clone(), unknown_camera_label(e), DCP_UNKNOWN_CAMERA_GROUP.to_string()));
+            return luts.chain(dcps).collect();
+        }
         let mut out = self.imported_profiles();
         out.retain(|(id, _, _)| self.profile_offered(id, photo));
         out
@@ -100,17 +198,20 @@ impl Session {
     }
 
     /// Whether profile `id` may be offered for photo `photo`: anything but an imported camera profile is; a camera
-    /// profile only for a photo it fits.
+    /// profile only for a photo it fits, or an offline raw whose camera is unknown.
     fn profile_offered(&self, id: &str, photo: Option<PhotoId>) -> bool {
         if !is_dcp_id(id) || !self.dcp_profiles.iter().any(|e| e.id == id) {
             return true;
         }
-        photo.is_some_and(|p| self.camera_profile_fits(id, p))
+        if !self.media.camera_profiles.contains_key(id) {
+            return false;
+        }
+        photo.is_some_and(|p| self.camera_profile_fits(id, p) || self.catalog.photo(p).is_some_and(|ph| is_unknown_camera_raw(ph)))
     }
 }
 
 /// `develop.profile`: refuse camera profile `profile_id` for photo `photo` when it is made for another camera, or
-/// the photo is not a raw. Other profiles pass.
+/// the photo is not a raw. Offline raws with unknown camera are allowed for manual selection; other profiles pass.
 pub(crate) fn refuse_unfit(s: &Session, c: &str, profile_id: &str, photo: PhotoId) -> Result<()> {
     if !is_dcp_id(profile_id) {
         return Ok(());
@@ -118,7 +219,7 @@ pub(crate) fn refuse_unfit(s: &Session, c: &str, profile_id: &str, photo: PhotoI
     let (Some(entry), Some(p)) = (s.dcp_profiles.iter().find(|e| e.id == profile_id), s.catalog.photo(photo)) else {
         return Ok(());
     };
-    if entry_fits(entry, p) {
+    if entry_fits(entry, p) || is_unknown_camera_raw(p) {
         return Ok(());
     }
     let made_for = match entry.camera_model.trim() {
@@ -136,10 +237,14 @@ pub(crate) fn refuse_unfit(s: &Session, c: &str, profile_id: &str, photo: PhotoI
 
 /// `Session::develop_op`: an edit that would put a camera profile made for another camera on photo `id` (a paste,
 /// sync, Auto Sync or preset carrying the profile from another photo) keeps the photo's own profile instead; the rest
-/// of the edit goes on. A photo that already has that profile keeps it.
-pub(crate) fn keep_own_camera_profile(s: &Session, id: PhotoId, settings: &mut DevelopSettings) {
+/// of the edit goes on. A photo that already has that profile keeps it. Manual `develop.profile` on an offline raw
+/// with unknown camera is permitted, while sync/paste/Auto Sync/presets never push a camera DCP onto it.
+pub(crate) fn keep_own_camera_profile(s: &Session, id: PhotoId, label: &str, settings: &mut DevelopSettings) {
     let new = &settings.profile.id;
     if !is_dcp_id(new) || !s.dcp_profiles.iter().any(|e| &e.id == new) || s.camera_profile_fits(new, id) {
+        return;
+    }
+    if label == "Profile" && s.active() == Some(id) && s.catalog.photo(id).is_some_and(|ph| is_unknown_camera_raw(ph)) {
         return;
     }
     let Some(own) = s.develop_of(id) else { return };
@@ -313,6 +418,154 @@ mod session_tests {
         assert_eq!(f.s.develop_of(n).unwrap().profile.id, "lc.vivid", "Auto Sync left the Nikon photo's own profile");
         f.s.close_library().unwrap();
         let _ = std::fs::remove_dir_all(&f.dir);
+    }
+
+    /// When catalog `meta.camera` is empty but the RAW file exists on disk, the 64 KiB EXIF header
+    /// fallback recovers the camera and matches only its own DCPs.
+    #[test]
+    fn exif_header_fallback_matches_camera_when_catalog_meta_is_empty() {
+        let mut f = fixture("exif-fallback");
+        let mut cleared = f.s.catalog.photo(f.nikon).unwrap().meta.clone();
+        cleared.make.clear();
+        cleared.camera.clear();
+        f.s.catalog.apply(lightcraft_catalog::Op::SetMeta { id: f.nikon, meta: Box::new(cleared) }).unwrap();
+
+        let offered: Vec<_> = f.s.imported_profiles_for(Some(f.nikon)).into_iter().map(|p| p.0).collect();
+        assert_eq!(offered, vec![f.nikon_dcp.clone()]);
+        f.s.execute("library.select", &json!({"ids": [f.nikon.0]})).unwrap();
+        assert!(f.s.execute("develop.profile", &json!({"id": f.olympus_dcp})).is_err());
+        f.s.execute("develop.profile", &json!({"id": f.nikon_dcp})).unwrap();
+        assert_eq!(f.s.develop_of(f.nikon).unwrap().profile.id, f.nikon_dcp);
+
+        f.s.close_library().unwrap();
+        let _ = std::fs::remove_dir_all(&f.dir);
+    }
+
+    /// Offline RAW with empty `meta.camera` and missing file (B12=A): shows all DCPs labeled with
+    /// their camera under `DCP_UNKNOWN_CAMERA_GROUP`, allows manual selection, and blocks Sync /
+    /// Paste / Auto Sync from pushing another photo's camera profile onto it.
+    #[test]
+    fn offline_raw_with_unknown_camera_shows_labeled_dcps_and_blocks_sync_paste() {
+        let mut f = fixture("offline-b12");
+        let offline = f.s.catalog.alloc_photo_id();
+        let mut ph = lightcraft_catalog::Photo::new(
+            offline,
+            lightcraft_catalog::Source::File { path: f.dir.join("absent/DSC_9999.NEF").to_string_lossy().into() },
+            "DSC_9999.NEF",
+            "RAW",
+            6000,
+            4000,
+            "2026-11-25",
+        );
+        ph.kind = lightcraft_catalog::MediaKind::Raw;
+        f.s.catalog.apply(lightcraft_catalog::Op::AddPhoto { photo: Box::new(ph) }).unwrap();
+
+        let offered = f.s.imported_profiles_for(Some(offline));
+        assert_eq!(offered.len(), 2);
+        assert!(offered.iter().all(|(_, _, g)| g == crate::ir_profiles::DCP_UNKNOWN_CAMERA_GROUP));
+        assert!(offered.iter().any(|(id, label, _)| id == &f.olympus_dcp && label == "EM1 IR (Olympus E-M1 Mark II)"));
+        assert!(offered.iter().any(|(id, label, _)| id == &f.nikon_dcp && label == "Zf IR (Nikon Z f)"));
+
+        // Manual selection succeeds
+        f.s.execute("library.select", &json!({"ids": [offline.0]})).unwrap();
+        let menu = menu_ids(&f.s);
+        assert!(menu.contains(crate::ir_profiles::DCP_UNKNOWN_CAMERA_GROUP), "{menu}");
+        f.s.execute("develop.profile", &json!({"id": f.nikon_dcp})).unwrap();
+        assert_eq!(f.s.develop_of(offline).unwrap().profile.id, f.nikon_dcp);
+
+        // Reset to built-in color and verify Sync / Paste / Auto Sync never carry a camera DCP onto it
+        f.s.execute("develop.profile", &json!({"id": "lc.color"})).unwrap();
+        f.s.execute("library.select", &json!({"ids": [f.olympus.0]})).unwrap();
+        f.s.execute("develop.profile", &json!({"id": f.olympus_dcp})).unwrap();
+        f.s.execute("develop.set", &json!({"control": "light.exposure", "value": 0.6})).unwrap();
+
+        // Sync
+        f.s.execute("library.select", &json!({"ids": [f.olympus.0, offline.0], "active": f.olympus.0})).unwrap();
+        f.s.execute("develop.sync", &json!({})).unwrap();
+        let synced = f.s.develop_of(offline).unwrap();
+        assert_eq!((synced.light.exposure, synced.profile.id.as_str()), (0.6, "lc.color"));
+
+        // Paste
+        f.s.execute("library.select", &json!({"ids": [f.olympus.0]})).unwrap();
+        f.s.execute("develop.set", &json!({"control": "light.exposure", "value": 1.1})).unwrap();
+        f.s.execute("develop.copy", &json!({})).unwrap();
+        f.s.execute("develop.paste", &json!({"ids": [offline.0]})).unwrap();
+        let pasted = f.s.develop_of(offline).unwrap();
+        assert_eq!((pasted.light.exposure, pasted.profile.id.as_str()), (1.1, "lc.color"));
+
+        // Auto Sync
+        f.s.execute("develop.profile", &json!({"id": "lc.color"})).unwrap();
+        f.s.execute("library.select", &json!({"ids": [f.olympus.0, offline.0], "active": f.olympus.0})).unwrap();
+        f.s.auto_sync = true;
+        f.s.execute("develop.profile", &json!({"id": f.olympus_dcp})).unwrap();
+        assert_eq!(f.s.develop_of(offline).unwrap().profile.id, "lc.color");
+
+        f.s.close_library().unwrap();
+        let _ = std::fs::remove_dir_all(&f.dir);
+    }
+
+    /// `photo.relink` and `library.recheckPreviewOnly` recover `meta.camera` (and `meta.make`) on
+    /// both master RAWs and their virtual copies, and stop probing once `meta.camera` is filled.
+    #[test]
+    fn relink_and_recheck_recover_missing_camera_metadata_on_master_and_virtual_copy() {
+        let dir = temp_dir("relink-recheck");
+        let files = dir.join("files");
+        std::fs::create_dir_all(&files).unwrap();
+        let real_dng = write_raw(&files, "DSC_5987.dng", "NIKON CORPORATION", "NIKON Z f");
+        let missing_a = files.join("missing_a.dng");
+
+        let mut s = Session::new().with_fs();
+        s.open_library(dir.join("lib"), false).unwrap();
+
+        // 1. Master A + virtual copy A_vc pointing to missing path, relinked with photo.relink
+        let a_id = s.catalog.alloc_photo_id();
+        let mut a = lightcraft_catalog::Photo::new(
+            a_id,
+            lightcraft_catalog::Source::File { path: missing_a.to_string_lossy().into() },
+            "missing_a.dng",
+            "DNG",
+            16,
+            16,
+            "2026-11-25",
+        );
+        a.kind = lightcraft_catalog::MediaKind::Raw;
+        s.catalog.apply(lightcraft_catalog::Op::AddPhoto { photo: Box::new(a) }).unwrap();
+        s.execute("library.select", &json!({"ids": [a_id.0]})).unwrap();
+        let r = s.execute("photo.virtualCopy", &json!({"ids": [a_id.0]})).unwrap();
+        let a_vc = PhotoId(r["ids"][0].as_u64().unwrap());
+
+        s.execute("photo.relink", &json!({"id": a_id.0, "path": real_dng.to_string_lossy()})).unwrap();
+        assert_eq!(s.catalog.photo(a_id).unwrap().meta.camera, "NIKON CORPORATION NIKON Z f");
+        assert_eq!(s.catalog.photo(a_id).unwrap().meta.make, "NIKON CORPORATION");
+        assert_eq!(s.catalog.photo(a_vc).unwrap().meta.camera, "NIKON CORPORATION NIKON Z f");
+
+        // 2. Master B + virtual copy B_vc pointing to real file on disk, with empty meta.camera
+        let b_id = s.catalog.alloc_photo_id();
+        let mut b = lightcraft_catalog::Photo::new(
+            b_id,
+            lightcraft_catalog::Source::File { path: real_dng.to_string_lossy().into() },
+            "DSC_5987.dng",
+            "DNG",
+            16,
+            16,
+            "2026-11-25",
+        );
+        b.kind = lightcraft_catalog::MediaKind::Raw;
+        s.catalog.apply(lightcraft_catalog::Op::AddPhoto { photo: Box::new(b) }).unwrap();
+        s.execute("library.select", &json!({"ids": [b_id.0]})).unwrap();
+        let r = s.execute("photo.virtualCopy", &json!({"ids": [b_id.0]})).unwrap();
+        let b_vc = PhotoId(r["ids"][0].as_u64().unwrap());
+
+        let r = s.execute("library.recheckPreviewOnly", &json!({})).unwrap();
+        assert_eq!(r["checked"], 1);
+        assert_eq!(s.catalog.photo(b_id).unwrap().meta.camera, "NIKON CORPORATION NIKON Z f");
+        assert_eq!(s.catalog.photo(b_vc).unwrap().meta.camera, "NIKON CORPORATION NIKON Z f");
+        // Second pass skips already-recovered RAWs
+        let r2 = s.execute("library.recheckPreviewOnly", &json!({})).unwrap();
+        assert_eq!(r2["checked"], 0);
+
+        s.close_library().unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
 
