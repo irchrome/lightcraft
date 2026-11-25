@@ -18,6 +18,9 @@
 use lightcraft_color::{Mat3, REC2020, SRGB};
 use lightcraft_develop::{ChannelMixer, DevelopSettings, IrMixState, MixRow};
 
+#[path = "ir_mix_catalog.rs"]
+pub mod catalog;
+
 /// What a mix refuses with: a value that is not a number (a damaged mixer).
 pub const IR_MIX_ERROR: &str = "This Channel Mixer can't be mixed further: reset it, then try again";
 
@@ -82,11 +85,16 @@ impl IrMix {
 
     /// The same mix expressed on the mixer's linear Rec.2020: `P · S · P⁻¹`.
     pub fn rec2020(self) -> Mat3 {
-        let p = SRGB.to_space(&REC2020);
-        // P is built from fixed, non-collinear primaries: its inverse exists
-        let p_inv = p.inverse().unwrap_or(Mat3::IDENTITY);
-        p.mul(&self.srgb()).mul(&p_inv)
+        srgb_matrix_to_rec2020(self.srgb())
     }
+}
+
+/// Express an sRGB primary mix `srgb` on the mixer's linear Rec.2020: `P · S · P⁻¹`.
+pub fn srgb_matrix_to_rec2020(srgb: Mat3) -> Mat3 {
+    let p = SRGB.to_space(&REC2020);
+    // P is built from fixed, non-collinear primaries: its inverse exists
+    let p_inv = p.inverse().unwrap_or(Mat3::IDENTITY);
+    p.mul(&srgb).mul(&p_inv)
 }
 
 /// The swap between sRGB primaries on Rec.2020 (kept for callers of the first fork version).
@@ -94,11 +102,9 @@ pub fn swap_rb_srgb_matrix() -> Mat3 {
     IrMix::SwapRB.rec2020()
 }
 
-/// The mixer after `mix` (see the module docs) and how much darker the photo comes out (EV, 0 when
-/// it fits the sliders). A value within 1e-6 % of a whole per cent snaps to it, so slider values
-/// stay whole and swapping the default mixer twice gives back the identity.
-pub fn apply_ir_mix(mix: IrMix, m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'static str> {
-    let mut new = mix.rec2020().mul(&Mat3(m.rows())).0;
+/// Apply a 3×3 unit sRGB mix matrix `rows_unit` to `m`, scaling into ±200 % when needed.
+pub fn apply_srgb_matrix(rows_unit: [[f64; 3]; 3], m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'static str> {
+    let mut new = srgb_matrix_to_rec2020(Mat3(rows_unit)).mul(&Mat3(m.rows())).0;
     if new.iter().flatten().any(|v| !v.is_finite()) {
         return Err(IR_MIX_ERROR);
     }
@@ -112,6 +118,13 @@ pub fn apply_ir_mix(mix: IrMix, m: &ChannelMixer) -> Result<(ChannelMixer, f64),
     Ok((ChannelMixer { red: row(0), green: row(1), blue: row(2) }, -scaled.log2() + 0.0))
 }
 
+/// The mixer after `mix` (see the module docs) and how much darker the photo comes out (EV, 0 when
+/// it fits the sliders). A value within 1e-6 % of a whole per cent snaps to it, so slider values
+/// stay whole and swapping the default mixer twice gives back the identity.
+pub fn apply_ir_mix(mix: IrMix, m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'static str> {
+    apply_srgb_matrix(mix.srgb().0, m)
+}
+
 /// The red/blue swap between sRGB primaries (`develop.mixerSwapRBsRGB`).
 pub fn mixer_swap_rb_srgb(m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'static str> {
     apply_ir_mix(IrMix::SwapRB, m)
@@ -120,14 +133,50 @@ pub fn mixer_swap_rb_srgb(m: &ChannelMixer) -> Result<(ChannelMixer, f64), &'sta
 /// How far a mixer coefficient (per cent) may be from the mix worked out again and still count as it.
 const SAME: f64 = 1e-6;
 
+fn mixer_matches(a: &ChannelMixer, b: &ChannelMixer) -> bool {
+    a.rows().iter().flatten().zip(b.rows().iter().flatten()).all(|(x, y)| (x - y).abs() <= SAME)
+}
+
+/// The hub IR mix spec that `d` currently shows (including the 8 built-in `IrMix` entries), if
+/// the mixer still matches the spec applied to `IrMixState::base`.
+pub fn active_hub_ir_mix(d: &DevelopSettings) -> Option<&'static catalog::HubIrMixSpec> {
+    let state = d.ir_mix.as_ref()?;
+    let spec = catalog::find_hub_ir_mix(&state.mix)?;
+    let (want, _) = apply_srgb_matrix(spec.rows_unit, &state.base).ok()?;
+    mixer_matches(&want, &d.channel_mixer).then_some(spec)
+}
+
 /// The IR mix the Channel Mixer of `d` shows: the one its [`IrMixState`] names, while the mixer is still that mix
 /// applied to the state's base. `None` once anything else changed the mixer.
 pub fn active_ir_mix(d: &DevelopSettings) -> Option<IrMix> {
     let state = d.ir_mix.as_ref()?;
     let mix = IrMix::from_id(&state.mix)?;
     let (want, _) = apply_ir_mix(mix, &state.base).ok()?;
-    let same = want.rows().iter().flatten().zip(d.channel_mixer.rows().iter().flatten()).all(|(a, b)| (a - b).abs() <= SAME);
-    same.then_some(mix)
+    mixer_matches(&want, &d.channel_mixer).then_some(mix)
+}
+
+fn choose_srgb_mix_inner(d: &mut DevelopSettings, id: &str, rows_unit: [[f64; 3]; 3]) -> Result<f64, &'static str> {
+    let active_spec = active_hub_ir_mix(d);
+    let base = match (&d.ir_mix, active_spec) {
+        (Some(state), Some(_)) => state.base,
+        _ => d.channel_mixer,
+    };
+    if active_spec.is_some_and(|s| s.id == id || s.ir_mix_id == Some(id)) {
+        d.channel_mixer = base;
+        d.ir_mix = None;
+        return Ok(0.0);
+    }
+    let (mixer, darker) = apply_srgb_matrix(rows_unit, &base)?;
+    d.channel_mixer = mixer;
+    d.ir_mix = Some(IrMixState { base, mix: id.to_string() });
+    Ok(darker)
+}
+
+/// Choose hub IR mix `spec` for settings `d` with the same replace-not-stack and toggle semantics
+/// as [`choose_ir_mix`].
+pub fn choose_hub_ir_mix(d: &mut DevelopSettings, spec: &catalog::HubIrMixSpec) -> Result<f64, &'static str> {
+    let id = spec.ir_mix_id.unwrap_or(spec.id);
+    choose_srgb_mix_inner(d, id, spec.rows_unit)
 }
 
 /// Choose IR mix `mix` for settings `d` (an IR mix button): `mix` applied to the base mixer, replacing the IR mix
@@ -135,20 +184,7 @@ pub fn active_ir_mix(d: &DevelopSettings) -> Option<IrMix> {
 /// [`active_ir_mix`] holds, else the mixer as it is now. Returns how much darker the photo comes out (EV, see
 /// [`apply_ir_mix`]); the Channel Mixer section's eye is left to the caller.
 pub fn choose_ir_mix(d: &mut DevelopSettings, mix: IrMix) -> Result<f64, &'static str> {
-    let on = active_ir_mix(d);
-    let base = match (&d.ir_mix, on) {
-        (Some(state), Some(_)) => state.base,
-        _ => d.channel_mixer,
-    };
-    if on == Some(mix) {
-        d.channel_mixer = base;
-        d.ir_mix = None;
-        return Ok(0.0);
-    }
-    let (mixer, darker) = apply_ir_mix(mix, &base)?;
-    d.channel_mixer = mixer;
-    d.ir_mix = Some(IrMixState { base, mix: mix.id().to_string() });
-    Ok(darker)
+    choose_srgb_mix_inner(d, mix.id(), mix.srgb().0)
 }
 
 #[cfg(test)]
@@ -311,5 +347,22 @@ mod tests {
         assert_eq!(active_ir_mix(&d), None);
         choose_ir_mix(&mut d, IrMix::SwapGB).unwrap();
         assert_eq!(d.channel_mixer, apply_ir_mix(IrMix::SwapGB, &picked()).unwrap().0);
+    }
+
+    #[test]
+    fn hub_catalog_includes_all_builtins_and_applies_cleanly() {
+        for (mix, id, _) in IrMix::ALL {
+            let spec = catalog::find_hub_ir_mix(id).expect("built-in present in hub catalog");
+            let want = mix.srgb().0;
+            for (r_got, r_want) in spec.rows_unit.iter().zip(want.iter()) {
+                for (g, w) in r_got.iter().zip(r_want.iter()) {
+                    assert!(close(*g, *w, 1e-6), "{id}: {spec:?}");
+                }
+            }
+        }
+        for spec in catalog::HUB_IR_MIXES {
+            let (m, _darker) = apply_srgb_matrix(spec.rows_unit, &picked()).unwrap();
+            assert!(m.rows().iter().flatten().all(|v| v.is_finite() && v.abs() <= 200.0 + 1e-9), "{}", spec.id);
+        }
     }
 }

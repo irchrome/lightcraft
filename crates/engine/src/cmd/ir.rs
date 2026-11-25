@@ -1,7 +1,7 @@
 //! Fork (irchrome/lightcraft, infrared) commands. Kept out of upstream's command files so that a
 //! sync touches two lines of `cmd.rs` and nothing else.
 
-use lightcraft_pipeline::ir_swap::{IrMix, active_ir_mix, choose_ir_mix};
+use lightcraft_pipeline::ir_swap::{IrMix, active_hub_ir_mix, active_ir_mix, catalog, choose_hub_ir_mix, choose_ir_mix};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, bad, cmd, has_active, str_param};
@@ -11,6 +11,17 @@ fn active(s: &Session, c: &str) -> Result<lightcraft_catalog::PhotoId> {
     s.active().ok_or_else(|| bad(c, "no active photo"))
 }
 
+fn finish_mix(s: &mut Session, id: lightcraft_catalog::PhotoId, d: lightcraft_develop::DevelopSettings, darker: f64, label: &str) -> Result<Value> {
+    let mut d = d;
+    if !d.section_enabled("channelMixer") {
+        d.set_section_enabled("channelMixer", true);
+    }
+    let on = active_ir_mix(&d).map(IrMix::id).or_else(|| active_hub_ir_mix(&d).map(|spec| spec.ir_mix_id.unwrap_or(spec.id)));
+    let mixer = d.channel_mixer;
+    s.set_develop(id, d, label)?;
+    Ok(json!({"mixer": mixer, "darker": darker, "irMix": on}))
+}
+
 /// Choose `mix` for the active photo's Channel Mixer in one undo step ([`choose_ir_mix`]: it replaces the IR mix
 /// that is on, or turns it off when it is that one), switching the section on when its eye is off (a mix the render
 /// ignores would look like a dead button).
@@ -18,12 +29,14 @@ fn run_mix(s: &mut Session, c: &str, mix: IrMix, label: &str) -> Result<Value> {
     let id = active(s, c)?;
     let mut d = (*s.develop_of(id).unwrap_or_default()).clone();
     let darker = choose_ir_mix(&mut d, mix).map_err(|e| bad(c, e))?;
-    if !d.section_enabled("channelMixer") {
-        d.set_section_enabled("channelMixer", true);
-    }
-    let (mixer, on) = (d.channel_mixer, active_ir_mix(&d).map(IrMix::id));
-    s.set_develop(id, d, label)?;
-    Ok(json!({"mixer": mixer, "darker": darker, "irMix": on}))
+    finish_mix(s, id, d, darker, label)
+}
+
+fn run_hub_mix(s: &mut Session, c: &str, spec: &catalog::HubIrMixSpec) -> Result<Value> {
+    let id = active(s, c)?;
+    let mut d = (*s.develop_of(id).unwrap_or_default()).clone();
+    let darker = choose_hub_ir_mix(&mut d, spec).map_err(|e| bad(c, e))?;
+    finish_mix(s, id, d, darker, spec.name)
 }
 
 pub fn specs() -> Vec<CommandSpec> {
@@ -42,14 +55,16 @@ pub fn specs() -> Vec<CommandSpec> {
             "Infrared Channel Mix",
             [],
             None,
-            "{mix: swapRB | swapRG | swapGB | rotateRGB | rotateRBG | swapRB70 | swapRB30 | monoRed} → {mixer, darker, irMix: the IR mix now on or null} — an infrared channel mix between sRGB primaries applied to the mixer from before the first IR mix (a white balance or neutral pick made before stays in): it replaces the IR mix that is on, and the mix that is on, chosen again, returns to that mixer; a mixer changed since by anything else is the new starting point; one undo step; scaled into ±200 % when needed (`darker` says by how many EV)",
+            "{mix: swapRB | swapRG | swapGB | rotateRGB | rotateRBG | swapRB70 | swapRB30 | monoRed | <hub-recipe-id>} → {mixer, darker, irMix: the IR mix now on or null} — an infrared channel mix between sRGB primaries (built-in or clean-room hub catalog) applied to the mixer from before the first IR mix (a white balance or neutral pick made before stays in): it replaces the IR mix that is on, and the mix that is on, chosen again, returns to that mixer; a mixer changed since by anything else is the new starting point; one undo step; scaled into ±200 % when needed (`darker` says by how many EV)",
             has_active,
             |s, p| {
                 const C: &str = "develop.mixerIrMix";
                 let name = str_param(p, "mix").ok_or_else(|| bad(C, "missing `mix`"))?;
-                let (mix, _, label) =
-                    IrMix::ALL.iter().find(|(_, id, _)| *id == name).copied().ok_or_else(|| bad(C, format!("unknown mix `{name}`")))?;
-                run_mix(s, C, mix, label)
+                if let Some((mix, _, label)) = IrMix::ALL.iter().find(|(_, id, _)| *id == name).copied() {
+                    return run_mix(s, C, mix, label);
+                }
+                let spec = catalog::find_hub_ir_mix(name).ok_or_else(|| bad(C, format!("unknown mix `{name}`")))?;
+                run_hub_mix(s, C, spec)
             }
         ),
     ]
@@ -173,5 +188,20 @@ mod tests {
         let out = s.execute("develop.mixerSwapRBsRGB", &json!({})).unwrap();
         assert!(out["darker"].as_f64().unwrap() > 0.0, "{out}");
         assert!(mixer(&s).rows().iter().flatten().all(|v| v.abs() <= 200.0 + 1e-9));
+    }
+
+    #[test]
+    fn hub_catalog_recipe_runs_toggles_and_undoes() {
+        let mut s = Session::with_demo();
+        let out = s.execute("develop.mixerIrMix", &json!({"mix": "own-swap-amber"})).unwrap();
+        assert_eq!(out["irMix"], "own-swap-amber");
+        assert!(!mixer(&s).is_identity());
+        let off = s.execute("develop.mixerIrMix", &json!({"mix": "own-swap-amber"})).unwrap();
+        assert_eq!(off["irMix"], json!(null));
+        assert!(mixer(&s).is_identity());
+        s.execute("edit.undo", &json!({})).unwrap();
+        assert!(!mixer(&s).is_identity());
+        s.execute("edit.undo", &json!({})).unwrap();
+        assert!(mixer(&s).is_identity());
     }
 }

@@ -1,12 +1,13 @@
 # IR-FORK.md — Fork Layer (read with upstream `AGENTS.md`)
 
-Repository: `irchrome/lightcraft` (fork of `storytold/lightcraft`). **In git; commits allowed** (one committing agent per repo). Planning, owner decisions, and spike reports live in the IR vault (`~/Documents/IR/tasks/lightcraft-ir/`).
+Repository: `irchrome/lightcraft` (fork of `storytold/lightcraft`). **In git; commits allowed** (one committing agent per repo). Private planning, owner decisions, and spike reports live in the unified IR hub (`~/Documents/ir-profiles-hub/projects/lightcraft/`).
 
 Detailed inventory of the 9 fork features and touched upstream files: read [`docs/IR-FORK-INVENTORY.md`](docs/IR-FORK-INVENTORY.md) before rebasing or touching fork modules.
 
 ## Standing Rules on Top of Upstream
 
 - **Raw processing order:** camera colour under IR and foliage-balanced WB come first; channel swap, mixer, and looks come after. Never demo a swap on a file with unverified WB (owner rule, 2026-10-31).
+- **Unified IR hub SSOT:** clean-room IR mix catalog (`crates/pipeline/src/ir_mix_catalog.rs`, `crates/pipeline/assets/ir_mix_catalog.json`) and `tests/corpus-manifests/raws.sha256` are synced from `~/Documents/ir-profiles-hub/` via `python3 ~/Documents/ir-profiles-hub/exporters/ir_hub.py sync lightcraft`. Do not hand-edit those generated files; `ir-hub.lock.json` tracks the hub commit and SHA-256 checksums.
 - **Minimal upstream diff:** keep new IR code in fork-owned modules/crates (planned `crates/ir`). Unavoidable upstream edits: `xtask/src/layers.rs` (1 row per crate), `crates/ui-egui/locales/*.json` (keys at end). **Never edit** upstream `docs/parity-checklist.md`, `docs/whats-new.md`, `docs/gaps.md`, `ROADMAP.md`, nor bump `RENDER_CACHE_VERSION`, `LOOK_VERSION`, catalog `VERSION`, or `Process::LATEST`.
 - **Clean room & private data:** no `.dcp`, `.cube`, Adobe profiles/matrices, raw files, or `ir-private/` in git (enforced by `tools/git-hooks/` pre-commit). Reading third-party DCP matrices locally is allowed (owner decision 2026-11-01), output stays outside git. Raw test corpus lives in `~/Documents/_IR-raw-corpus/` (sha256 manifests in `tests/corpus-manifests/`). Local LibRaw (`~/Documents/_vendor/LibRaw`, LGPL) never enters git.
 - **Never upstream:** Olympus 12-bit ORF decoder (`olympus12.rs`, provenance disputed upstream).

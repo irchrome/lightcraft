@@ -1,0 +1,1221 @@
+{
+  "_generated_from": "ir-profiles-hub",
+  "clean_room": true,
+  "space": "linear_srgb",
+  "entries": [
+    {
+      "id": "lc-swap-rb",
+      "ir_mix_id": "swapRB",
+      "name": "Red <-> Blue",
+      "family": "swap",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          0,
+          0,
+          100
+        ],
+        [
+          0,
+          100,
+          0
+        ],
+        [
+          100,
+          0,
+          0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-swap-rg",
+      "ir_mix_id": "swapRG",
+      "name": "Red <-> Green",
+      "family": "swap",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          0,
+          100,
+          0
+        ],
+        [
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-swap-gb",
+      "ir_mix_id": "swapGB",
+      "name": "Green <-> Blue",
+      "family": "swap",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100
+        ],
+        [
+          0,
+          100,
+          0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-rotate-rgb",
+      "ir_mix_id": "rotateRGB",
+      "name": "Rotate R -> G -> B",
+      "family": "swap",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          0,
+          0,
+          100
+        ],
+        [
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          100,
+          0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-rotate-rbg",
+      "ir_mix_id": "rotateRBG",
+      "name": "Rotate R -> B -> G",
+      "family": "swap",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          0,
+          100,
+          0
+        ],
+        [
+          0,
+          0,
+          100
+        ],
+        [
+          100,
+          0,
+          0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-swap-rb-70",
+      "ir_mix_id": "swapRB70",
+      "name": "Red <-> Blue 70 %",
+      "family": "swap-variant",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          30,
+          0,
+          70
+        ],
+        [
+          0,
+          100,
+          0
+        ],
+        [
+          70,
+          0,
+          30
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-swap-rb-30",
+      "ir_mix_id": "swapRB30",
+      "name": "Red <-> Blue 30 %",
+      "family": "swap-variant",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          70,
+          0,
+          30
+        ],
+        [
+          0,
+          100,
+          0
+        ],
+        [
+          30,
+          0,
+          70
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "lc-mono-red",
+      "ir_mix_id": "monoRed",
+      "name": "Mono from Red (IR)",
+      "family": "mono",
+      "source": "builtin",
+      "rows_percent": [
+        [
+          100,
+          0,
+          0
+        ],
+        [
+          100,
+          0,
+          0
+        ],
+        [
+          100,
+          0,
+          0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "course-swap-neutral-green",
+      "ir_mix_id": null,
+      "name": "IR Swap Neutral Green",
+      "family": "swap",
+      "source": "course",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          50.0,
+          0.0,
+          50.0
+        ],
+        [
+          100.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "filters": [
+        "720"
+      ]
+    },
+    {
+      "id": "course-swap-vivid",
+      "ir_mix_id": null,
+      "name": "IR Swap Vivid",
+      "family": "swap",
+      "source": "course",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          50.0,
+          0.0,
+          50.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "course-mono-swap",
+      "ir_mix_id": null,
+      "name": "IR Mono Swap BW",
+      "family": "mono",
+      "source": "course",
+      "rows_percent": [
+        [
+          -35.0,
+          25.0,
+          110.0
+        ],
+        [
+          -35.0,
+          25.0,
+          110.0
+        ],
+        [
+          -35.0,
+          25.0,
+          110.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "course-swap-boost",
+      "ir_mix_id": null,
+      "name": "IR Swap Boost",
+      "family": "swap",
+      "source": "course",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "course-swap-intense",
+      "ir_mix_id": null,
+      "name": "IR Swap Intense",
+      "family": "swap",
+      "source": "course",
+      "rows_percent": [
+        [
+          -50.0,
+          0.0,
+          150.0
+        ],
+        [
+          50.0,
+          0.0,
+          50.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "own-swap-amber",
+      "ir_mix_id": null,
+      "name": "IR Swap Amber",
+      "family": "swap",
+      "source": "own",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          75.0,
+          0.0,
+          25.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665"
+      ]
+    },
+    {
+      "id": "own-swap-lime",
+      "ir_mix_id": null,
+      "name": "IR Swap Lime",
+      "family": "swap",
+      "source": "own",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          25.0,
+          0.0,
+          75.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665"
+      ]
+    },
+    {
+      "id": "own-swap-boost-soft-sky",
+      "ir_mix_id": null,
+      "name": "IR Swap Boost Soft Sky",
+      "family": "swap",
+      "source": "own",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          150.0,
+          0.0,
+          -50.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665"
+      ]
+    },
+    {
+      "id": "panel-swap-soft-green",
+      "ir_mix_id": null,
+      "name": "IR Swap Soft Green",
+      "family": "swap",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          75.0,
+          75.0,
+          -50.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "panel-swap-mixer-6",
+      "ir_mix_id": null,
+      "name": "IR Swap Mixer 6",
+      "family": "swap",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          200.0,
+          -200.0,
+          100.0
+        ],
+        [
+          200.0,
+          -50.0,
+          -50.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-swap-mixer-4b",
+      "ir_mix_id": null,
+      "name": "IR Swap Mixer 4b",
+      "family": "swap",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          85.0,
+          17.0,
+          8.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-swap-mixer-5b",
+      "ir_mix_id": null,
+      "name": "IR Swap Mixer 5b",
+      "family": "swap",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          200.0,
+          0.0,
+          -90.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-550-mixer",
+      "ir_mix_id": null,
+      "name": "IR Swap 550 Mixer",
+      "family": "swap",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          200.0,
+          0.0,
+          -100.0
+        ],
+        [
+          0.0,
+          200.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "550"
+      ]
+    },
+    {
+      "id": "panel-red-look-alt",
+      "ir_mix_id": null,
+      "name": "IR Red Look Alt",
+      "family": "creative",
+      "source": "panel",
+      "rows_percent": [
+        [
+          100.0,
+          -2.0,
+          0.0
+        ],
+        [
+          -14.0,
+          25.0,
+          100.0
+        ],
+        [
+          59.0,
+          46.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-cmp-two-strip",
+      "ir_mix_id": null,
+      "name": "IR Two Strip",
+      "family": "creative",
+      "source": "panel",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-cmp-half-blue",
+      "ir_mix_id": null,
+      "name": "IR Half Blue",
+      "family": "creative",
+      "source": "panel",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          50.0,
+          50.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-bw-green",
+      "ir_mix_id": null,
+      "name": "IR Mono Green Filter",
+      "family": "mono",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-bw-blue",
+      "ir_mix_id": null,
+      "name": "IR Mono Blue Filter",
+      "family": "mono",
+      "source": "panel",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-bw-yellow",
+      "ir_mix_id": null,
+      "name": "IR Mono Yellow Filter",
+      "family": "mono",
+      "source": "panel",
+      "rows_percent": [
+        [
+          34.0,
+          66.0,
+          0.0
+        ],
+        [
+          34.0,
+          66.0,
+          0.0
+        ],
+        [
+          34.0,
+          66.0,
+          0.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-bw-orange",
+      "ir_mix_id": null,
+      "name": "IR Mono Orange Filter",
+      "family": "mono",
+      "source": "panel",
+      "rows_percent": [
+        [
+          50.0,
+          50.0,
+          0.0
+        ],
+        [
+          50.0,
+          50.0,
+          0.0
+        ],
+        [
+          50.0,
+          50.0,
+          0.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "panel-bw-ir",
+      "ir_mix_id": null,
+      "name": "IR Mono IR Filter",
+      "family": "mono",
+      "source": "panel",
+      "rows_percent": [
+        [
+          -70.0,
+          200.0,
+          -30.0
+        ],
+        [
+          -70.0,
+          200.0,
+          -30.0
+        ],
+        [
+          -70.0,
+          200.0,
+          -30.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-cyclic-minus-blue",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Minus Blue",
+      "family": "swap",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -100.0
+        ],
+        [
+          0.0,
+          100.0,
+          -100.0
+        ]
+      ],
+      "filters": [
+        "Tiffen 12 + DB850",
+        "Tiffen 12"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-minus-blue-20",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Minus Blue 20",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -20.0
+        ],
+        [
+          0.0,
+          100.0,
+          -20.0
+        ]
+      ],
+      "filters": [
+        "TB550/660/850",
+        "DB850 + orange"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-minus-blue-40",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Minus Blue 40",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -40.0
+        ],
+        [
+          0.0,
+          100.0,
+          -40.0
+        ]
+      ],
+      "filters": [
+        "TB550/660/850",
+        "DB850 + orange"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-minus-blue-60",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Minus Blue 60",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -60.0
+        ],
+        [
+          0.0,
+          100.0,
+          -60.0
+        ]
+      ],
+      "filters": [
+        "TB550/660/850",
+        "DB850 + orange"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-sub-g40-b30",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Green -40 Blue -30",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -40.0
+        ],
+        [
+          0.0,
+          100.0,
+          -30.0
+        ]
+      ],
+      "filters": [
+        "orange + Hoya X1"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-sub-g40",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Green -40 Blue 0",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          100.0,
+          0.0,
+          -40.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ]
+      ],
+      "filters": [
+        "orange + DB850"
+      ]
+    },
+    {
+      "id": "uvf-purple-gold",
+      "ir_mix_id": null,
+      "name": "IR Purple and Gold",
+      "family": "creative",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          50.0,
+          120.0,
+          -50.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": [
+        "Hoya X1"
+      ]
+    },
+    {
+      "id": "uvf-cyclic-boosted",
+      "ir_mix_id": null,
+      "name": "IR Cyclic Swap Boosted",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          120.0,
+          0.0,
+          -20.0
+        ],
+        [
+          0.0,
+          120.0,
+          -20.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-warp-r-from-g",
+      "ir_mix_id": null,
+      "name": "IR Warp R from G",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-warp-r-from-b",
+      "ir_mix_id": null,
+      "name": "IR Warp R from B",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-warp-g-from-r",
+      "ir_mix_id": null,
+      "name": "IR Warp G from R",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-warp-g-from-b",
+      "ir_mix_id": null,
+      "name": "IR Warp G from B",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-warp-b-from-r",
+      "ir_mix_id": null,
+      "name": "IR Warp B from R",
+      "family": "swap-variant",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          100.0,
+          0.0
+        ],
+        [
+          100.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "filters": []
+    },
+    {
+      "id": "uvf-green-half-red",
+      "ir_mix_id": null,
+      "name": "IR Green Half Red",
+      "family": "creative",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          100.0,
+          0.0,
+          0.0
+        ],
+        [
+          50.0,
+          50.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "filters": [
+        "Hoya X1",
+        "Lee blue (not named in the excerpt)"
+      ]
+    },
+    {
+      "id": "uvf-fit-gold-foliage-blue-sky",
+      "ir_mix_id": null,
+      "name": "IR Fit Gold Foliage Blue Sky",
+      "family": "fit",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          -16.2,
+          0.0,
+          115.8
+        ],
+        [
+          -2.9,
+          99.9,
+          5.1
+        ],
+        [
+          111.5,
+          0.3,
+          -20.3
+        ]
+      ],
+      "filters": [
+        "590",
+        "665",
+        "720"
+      ]
+    },
+    {
+      "id": "uvf-fit-pink-foliage-deep-sky",
+      "ir_mix_id": null,
+      "name": "IR Fit Pink Foliage Deep Sky",
+      "family": "fit",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          -2.3,
+          -1.4,
+          102.1
+        ],
+        [
+          89.6,
+          -2.3,
+          10.1
+        ],
+        [
+          -11.8,
+          100.9,
+          11.9
+        ]
+      ],
+      "filters": [
+        "TB550/660/850",
+        "DB850 + Tiffen 12"
+      ]
+    },
+    {
+      "id": "uvf-fit-rose-foliage-teal-sky",
+      "ir_mix_id": null,
+      "name": "IR Fit Rose Foliage Teal Sky",
+      "family": "fit",
+      "source": "uvforum",
+      "rows_percent": [
+        [
+          0.0,
+          0.0,
+          100.0
+        ],
+        [
+          84.5,
+          2.7,
+          15.8
+        ],
+        [
+          -24.5,
+          97.3,
+          24.2
+        ]
+      ],
+      "filters": [
+        "TB550/660/850",
+        "DB850 + Tiffen 12"
+      ]
+    }
+  ]
+}
