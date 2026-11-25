@@ -1,6 +1,6 @@
 # IR-FORK-INVENTORY.md — Fork Features and Touched Upstream Files
 
-Detailed technical inventory of what `irchrome/lightcraft` carries on top of upstream `storytold/lightcraft` (extracted from `IR-FORK.md` on 2026-11-23 to keep always-on context under 32 KB). Read this file when rebasing onto upstream (`tools/sync-upstream.sh`) or modifying fork-specific modules.
+Detailed technical inventory of the 9 fork features and what `irchrome/lightcraft` carries on top of upstream `storytold/lightcraft` (extracted from `IR-FORK.md` on 2026-11-23 to keep always-on context under 32 KB). Read this file when rebasing onto upstream (`tools/sync-upstream.sh`) or modifying fork-specific modules.
 
 ## 1. Fork Layer Docs & Hooks
 - `IR-FORK.md`, `docs/IR-FORK-INVENTORY.md`, `SYNC-LOG.md`
@@ -26,10 +26,11 @@ Detailed technical inventory of what `irchrome/lightcraft` carries on top of ups
   - `mod`/`pub use` + `Section::ChannelMixer` arm in `reset_section` in `crates/develop/src/lib.rs`
   - `"ir_mix"` key in Channel Mixer copy group in `crates/develop/src/presets.rs`
 
-## 5. Camera-Bound DCP Profiles (`ir_profiles`)
+## 5. Camera-Bound DCP Profiles & Lightroom Metadata Recovery (`ir_profiles`, `ir_lightroom_meta`)
 - **Behavior:** imported `.dcp` is offered and accepted by `develop.profile` only for a raw matching `UniqueCameraModel` (`dcp_fits`: lowercase alphanumeric whole names, make + model, never prefixes). Paste, sync, Auto Sync, and presets keep a photo's own profile when carried profile doesn't fit. LUT profiles remain universal.
-- **Fork-owned file:** `crates/engine/src/ir_profiles.rs`.
-- **Upstream files touched:** 2 lines in `crates/engine/src/lib.rs` (`pub mod ir_profiles;` + `keep_own_camera_profile` at top of `Session::develop_op`), 1 in `crates/engine/src/cmd/develop.rs` (`refuse_unfit`), 1 in `crates/engine/src/presets.rs` (`imported_profiles_for`), 2 in `crates/ui-egui/src/panels/profiles.rs`, 2 in `crates/ui-egui/src/panels/edit/sliders.rs`, fixture helper in `crates/engine/src/tests/dcp.rs`.
+- **Lightroom import & fallback recovery:** `ir_lightroom_meta.rs` harvests `AgInternedExifCameraModel`, `AgInternedExifLens`, and `AgHarvestedExifMetadata` plus XMP `tiff:Make`/`tiff:Model` during `.lrcat` import; `recheck::stale` probes raw stubs with empty `meta.camera`; `photo.relink` and virtual copies run `fill_missing_meta`; `ir_profiles.rs` falls back to a cached 64 KiB EXIF header read for on-disk raws and offers labeled DCPs under `"Camera Profiles (camera unknown)"` for manual selection on offline unknown-camera raws (while blocking Sync/Paste/Auto Sync).
+- **Fork-owned files:** `crates/engine/src/ir_profiles.rs`, `crates/engine/src/ir_lightroom_meta.rs`.
+- **Upstream files touched:** 2 lines in `crates/engine/src/lib.rs` (`mod ir_lightroom_meta;`, `pub mod ir_profiles;` + `keep_own_camera_profile` in `Session::develop_op`), 1 in `crates/engine/src/cmd/develop.rs` (`refuse_unfit`), 1 in `crates/engine/src/presets.rs` (`imported_profiles_for` / `append_dcp_groups`), 6 in `crates/engine/src/lightroom_catalog.rs`, 4 in `crates/engine/src/cmd/recheck.rs`, 3 in `crates/engine/src/cmd/missing.rs`, 2 in `crates/engine/src/cmd/convert.rs`, 3 in `crates/ui-egui/src/menus/run.rs` (`find_missing_done`), 2 in `crates/ui-egui/src/panels/profiles.rs`, 2 in `crates/ui-egui/src/panels/edit/sliders.rs`, fixture helper in `crates/engine/src/tests/dcp.rs`.
 
 ## 6. Nikon High Efficiency NEF (HE / HE★) via Local LibRaw
 - **Behavior:** off by default (`--features lightcraft/nikon-he,lightcraft-cli/nikon-he`). C shim over LibRaw public API (`libraw_open_buffer` + `libraw_unpack`, sensor samples only; levels/WB/colour/crop stay in LightCraft NEF reader).
@@ -42,4 +43,9 @@ Detailed technical inventory of what `irchrome/lightcraft` carries on top of ups
 - **Files:** `crates/pipeline/src/ir_gamut.rs`; GPU twin `ir_compress` in `crates/gpu/src/wgsl/finish.wgsl`, `IR_GAMUT`/`IR_GAMUT_S` in `crates/gpu/src/params.rs`, `FinishParams::ir_gamut`; CPU = GPU within 1 code value (`equivalence.rs`). Does not bump `RENDER_CACHE_VERSION`: rebuild IR previews with `library.buildPreviews ids=[…] force=true`.
 
 ## 8. Fork Branding & Disconnected Upstream Updater
-- **Files:** fork-owned `crates/ui-egui/src/ir_fork.rs`; touched `crates/ui-egui/src/dialogs.rs` (`about_body`), `crates/ui-egui/src/lib.rs` (`mod` + `UPDATE_APP` → `irchrome/lightcraft`), `apps/lightcraft/src/main.rs` (`set_startup_update_check(false)`), 3 keys at end of `crates/ui-egui/locales/*.json`. Update feature sentence in `ir_fork.rs` when fork feature set changes.
+- **Files:** fork-owned `crates/ui-egui/src/ir_fork.rs`; touched `crates/ui-egui/src/dialogs.rs` (`about_body`), `crates/ui-egui/src/lib.rs` (`mod` + `UPDATE_APP` → `irchrome/lightcraft`), `apps/lightcraft/src/main.rs` (`set_startup_update_check(false)`), keys at end of `crates/ui-egui/locales/*.json`. Update feature sentence in `ir_fork.rs` when fork feature set changes.
+
+## 9. Dedicated Infrared Tab in `Tools` (`ir_tab`)
+- **Behavior:** `[ Edit | Infrared ]` segmented tab bar in the `Tools` panel (`RightPanel::Edit` + `UiState::ir_tab`, 0 lines in `docking.rs` and `detail.rs`), plus `Icon::Sun` (`panel.infrared`, `Shift+I`) on the right tool strip. Groups camera DCP quick list with live `HoverPreview` + `Amount`, WB (`Temp`/`Tint`, `W` picker) + compact `Exposure`/`Vibrance`/`Saturation`, and Infrared Channel Mixer (neutral picker, `Swap Red and Blue (sRGB)`, `More IR mixes`, Reset, 3×3 sliders).
+- **Fork-owned file:** `crates/ui-egui/src/panels/ir_tab.rs`.
+- **Upstream files touched:** `crates/ui-egui/src/panels.rs` (`pub mod ir_tab;`), `state.rs` (`ir_tab: bool`), `panels/right.rs` (tab bar & dispatch), `panels/edit.rs` & `panels/edit/sliders.rs` (`prepared_develop` + `pub(crate)` visibility), `panels/strip.rs` (`Icon::Sun`), `menus/ui_commands.rs` / `menus/menubar.rs` / `menus/run.rs` (`panel.infrared`), locale keys at end of `crates/ui-egui/locales/*.json`.

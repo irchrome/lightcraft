@@ -2454,6 +2454,16 @@
   "Red ↔ Blue 30 %": "Merah ↔ biru 30 %",
   "Mono from Red (IR)": "Mono dari merah (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — fork untuk fotografi inframerah.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Menambahkan tukar merah/biru dan campuran kanal inframerah di sRGB, profil kamera yang terikat ke kameranya, dan data raw dari file Nikon High Efficiency NEF.",
-  "IR fork on GitHub": "Fork IR di GitHub"
+  "IR fork on GitHub": "Fork IR di GitHub",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Menambahkan tab pengeditan Inframerah, tukar merah/biru dan campuran kanal inframerah di sRGB, profil DCP terikat kamera dengan pemulihan Lightroom, dan data raw dari file Nikon High Efficiency NEF.",
+  "Infrared": "Inframerah",
+  "Infrared (Shift+I)": "Inframerah (Shift+I)",
+  "Infrared Panel": "Panel Inframerah",
+  "Camera Profile": "Profil Kamera",
+  "Import DCP…": "Impor DCP…",
+  "No camera profiles imported for this camera yet.": "Belum ada profil kamera yang diimpor untuk kamera ini.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Kamera tidak dikenal — muat ulang dari disk untuk mencocokkan profil DCP.",
+  "White Balance & Color": "Keseimbangan Putih & Warna",
+  "Infrared Channel Mixer": "Pencampur Kanal Inframerah",
+  "Channel Sliders": "Penggeser Kanal"
 }

@@ -2768,6 +2768,16 @@
   "Red ↔ Blue 30 %": "Đỏ ↔ lam 30 %",
   "Mono from Red (IR)": "Đơn sắc từ đỏ (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — bản fork cho nhiếp ảnh hồng ngoại.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Thêm hoán đổi đỏ/xanh lam và trộn kênh hồng ngoại trong sRGB, hồ sơ máy gắn với đúng máy ảnh, và dữ liệu raw từ tệp Nikon High Efficiency NEF.",
-  "IR fork on GitHub": "Bản fork IR trên GitHub"
+  "IR fork on GitHub": "Bản fork IR trên GitHub",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Thêm tab chỉnh sửa Hồng ngoại, hoán đổi đỏ/xanh lam và trộn kênh hồng ngoại trong sRGB, hồ sơ DCP gắn với máy ảnh kèm khôi phục từ Lightroom và dữ liệu raw từ tệp Nikon High Efficiency NEF.",
+  "Infrared": "Hồng ngoại",
+  "Infrared (Shift+I)": "Hồng ngoại (Shift+I)",
+  "Infrared Panel": "Bảng Hồng ngoại",
+  "Camera Profile": "Hồ sơ máy ảnh",
+  "Import DCP…": "Nhập DCP…",
+  "No camera profiles imported for this camera yet.": "Chưa có hồ sơ máy ảnh nào được nhập cho máy này.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Không rõ máy ảnh — tải lại từ đĩa để khớp hồ sơ DCP.",
+  "White Balance & Color": "Cân bằng trắng & Màu sắc",
+  "Infrared Channel Mixer": "Bộ trộn kênh hồng ngoại",
+  "Channel Sliders": "Thanh trượt kênh"
 }

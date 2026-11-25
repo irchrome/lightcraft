@@ -939,7 +939,31 @@ fn ui_commands_7(app: &mut LightcraftApp, ctx: &egui::Context, id: &str, p: &Val
             Ok(json!({"filterBar": app.ui.filter_bar}))
         }
         "panel.edit" => {
-            panel(app, ctx, RightPanel::Edit, "Edit");
+            if app.ui.right == RightPanel::Edit && app.ui.ir_tab && crate::docking::exposed(app, crate::docking::Panel::Tools) {
+                app.ui.ir_tab = false;
+                app.toast(ctx, crate::i18n::tr_format!("{name} On", name = crate::i18n::tr("Edit")));
+            } else {
+                app.ui.ir_tab = false;
+                panel(app, ctx, RightPanel::Edit, "Edit");
+            }
+            Ok(Value::Null)
+        }
+        "panel.infrared" => {
+            if app.ui.right == RightPanel::Edit && app.ui.ir_tab && crate::docking::exposed(app, crate::docking::Panel::Tools) {
+                app.ui.right = RightPanel::None;
+                app.toast(ctx, crate::i18n::tr_format!("{name} Off", name = crate::i18n::tr("Infrared")));
+            } else {
+                app.ui.ir_tab = true;
+                app.ui.right = RightPanel::Edit;
+                app.toast(ctx, crate::i18n::tr_format!("{name} On", name = crate::i18n::tr("Infrared")));
+                if !matches!(app.ui.view, ViewMode::Detail) {
+                    app.ui.view = ViewMode::Detail;
+                }
+            }
+            if !picker_alive(&app.ui.tool) {
+                app.ui.tool.clear();
+            }
+            let _ = app.session.end_interaction();
             Ok(Value::Null)
         }
         "panel.profiles" => {
@@ -1049,8 +1073,9 @@ fn ui_commands_8(app: &mut LightcraftApp, _ctx: &egui::Context, id: &str, p: &Va
                 return Err(format!("{s}: no such Edit section"));
             }
             let sec = &s["section.".len()..];
-            if app.ui.right != RightPanel::Edit {
+            if app.ui.right != RightPanel::Edit || app.ui.ir_tab {
                 app.ui.right = RightPanel::Edit;
+                app.ui.ir_tab = false;
             }
             if solo == Some(true) {
                 app.ui.solo_section(sec);

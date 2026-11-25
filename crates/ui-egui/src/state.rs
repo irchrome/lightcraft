@@ -47,6 +47,9 @@ pub struct UiState {
     pub view: ViewMode,
     pub left_panel: bool,
     pub right: RightPanel,
+    /// Dedicated Infrared tab inside `RightPanel::Edit` (`panels/ir_tab.rs`, IR fork).
+    #[serde(default)]
+    pub ir_tab: bool,
     /// The right panel F8 (`view.rightPanel`) hid, which the next F8 shows again.
     #[serde(skip)]
     pub right_hidden: RightPanel,
@@ -404,6 +407,7 @@ impl Default for UiState {
             left_width: LEFT_WIDTH.default,
             right_width: RIGHT_WIDTH.default,
             right: RightPanel::Edit,
+            ir_tab: false,
             right_hidden: RightPanel::None,
             presets: false,
             preset_thumbs: false,

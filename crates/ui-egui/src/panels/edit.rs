@@ -34,12 +34,12 @@ pub(crate) use histogram::histogram;
 use histogram::soft_proofing;
 use lens_blur::lens_blur;
 use mixer::{mixer, point_color};
-use sliders::{REL_TEMP, REL_TINT, hdr_row, header_buttons, k_to_rel, profile_menu, quick_develop, rel_to_k, reset_tip, section};
+pub(crate) use sliders::{REL_TEMP, REL_TINT, k_to_rel, profile_menu, rel_to_k};
 pub use sliders::{apply_slider_out, sub_title};
 pub(crate) use sliders::{control, control_override, reload_preview_only};
+use sliders::{hdr_row, header_buttons, quick_develop, reset_tip, section};
 
-pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
-    let t = Tokens::get(ui.ctx());
+pub(crate) fn prepared_develop(app: &LightcraftApp, id: PhotoId) -> (std::sync::Arc<DevelopSettings>, bool) {
     let d = app.session.develop_of(id).unwrap_or_default();
     // a raw shown from its embedded JPEG (preview only) gets the rendered-file white balance scale
     let raw = app.session.catalog.photo(id).is_some_and(|p| p.develops_raw() && !p.relative_wb());
@@ -58,6 +58,12 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         wb.temp = temp;
         wb.tint = tint;
     }
+    (d, raw)
+}
+
+pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
+    let t = Tokens::get(ui.ctx());
+    let (d, raw) = prepared_develop(app, id);
     let preview_only = app.session.catalog.photo(id).and_then(|p| p.preview_only.clone());
 
     if app.ui.soft_proof {

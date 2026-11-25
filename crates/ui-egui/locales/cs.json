@@ -2529,6 +2529,16 @@
   "Red ↔ Blue 30 %": "Červená ↔ modrá 30 %",
   "Mono from Red (IR)": "Mono z červené (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — fork pro infračervenou fotografii.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Přidává záměnu červené a modré a infračervené mixy kanálů v sRGB, profily fotoaparátů vázané na svůj fotoaparát a data RAW ze souborů Nikon High Efficiency NEF.",
-  "IR fork on GitHub": "IR fork na GitHubu"
+  "IR fork on GitHub": "IR fork na GitHubu",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Přidává kartu úprav Infračervené, záměnu červené a modré a infračervené mixy kanálů v sRGB, profily fotoaparátů vázané na svůj fotoaparát s obnovením dat z Lightroomu a data RAW ze souborů Nikon High Efficiency NEF.",
+  "Infrared": "Infračervené",
+  "Infrared (Shift+I)": "Infračervené (Shift+I)",
+  "Infrared Panel": "Panel Infračervené",
+  "Camera Profile": "Profil fotoaparátu",
+  "Import DCP…": "Importovat DCP…",
+  "No camera profiles imported for this camera yet.": "Pro tento fotoaparát zatím nejsou importovány žádné profily.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Fotoaparát není znám — načtěte znovu z disku pro přiřazení DCP profilů.",
+  "White Balance & Color": "Vyvážení bílé a barvy",
+  "Infrared Channel Mixer": "Infračervený míchací panel kanálů",
+  "Channel Sliders": "Posuvníky kanálů"
 }

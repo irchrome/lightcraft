@@ -2483,6 +2483,16 @@
   "Red ↔ Blue 30 %": "紅 ↔ 藍 30 %",
   "Mono from Red (IR)": "取紅色單色 (紅外)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — 為紅外線攝影打造的分支。",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "新增 sRGB 中的紅藍互換與紅外線色版混合、與所屬相機綁定的相機描述檔，以及 Nikon High Efficiency NEF 檔案的原始資料。",
-  "IR fork on GitHub": "GitHub 上的紅外線分支"
+  "IR fork on GitHub": "GitHub 上的紅外線分支",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "新增紅外線編輯分頁、sRGB 中的紅藍互換與紅外線色版混合、綁定所屬相機並支援 Lightroom 相機資訊還原的 DCP 描述檔，以及 Nikon High Efficiency NEF 檔案的原始資料。",
+  "Infrared": "紅外線",
+  "Infrared (Shift+I)": "紅外線（Shift+I）",
+  "Infrared Panel": "紅外線面板",
+  "Camera Profile": "相機描述檔",
+  "Import DCP…": "匯入 DCP…",
+  "No camera profiles imported for this camera yet.": "尚未為此相機匯入任何描述檔。",
+  "Camera unknown — reload from disk to match DCP profiles.": "相機未知 — 從磁碟重新載入以配對 DCP 描述檔。",
+  "White Balance & Color": "白平衡與色彩",
+  "Infrared Channel Mixer": "紅外線色版混合器",
+  "Channel Sliders": "色版滑桿"
 }

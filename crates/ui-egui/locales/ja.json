@@ -2481,6 +2481,16 @@
   "Red ↔ Blue 30 %": "赤 ↔ 青 30 %",
   "Mono from Red (IR)": "赤から白黒 (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — 赤外線写真のためのフォーク。",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "sRGB での赤/青の入れ替えと赤外線チャンネルミックス、撮影したカメラに紐づくカメラプロファイル、Nikon High Efficiency NEF ファイルの RAW データを追加します。",
-  "IR fork on GitHub": "GitHub の IR フォーク"
+  "IR fork on GitHub": "GitHub の IR フォーク",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "赤外線編集タブ、sRGB での赤/青の入れ替えと赤外線チャンネルミックス、Lightroom からのカメラ情報復元付きカメラ固有 DCP プロファイル、Nikon High Efficiency NEF ファイルの RAW データを追加します。",
+  "Infrared": "赤外線",
+  "Infrared (Shift+I)": "赤外線（Shift+I）",
+  "Infrared Panel": "赤外線パネル",
+  "Camera Profile": "カメラプロファイル",
+  "Import DCP…": "DCP を読み込む…",
+  "No camera profiles imported for this camera yet.": "このカメラ用のプロファイルはまだ読み込まれていません。",
+  "Camera unknown — reload from disk to match DCP profiles.": "カメラが不明です — ディスクから再読み込みして DCP プロファイルを照合してください。",
+  "White Balance & Color": "ホワイトバランスとカラー",
+  "Infrared Channel Mixer": "赤外線チャンネルミキサー",
+  "Channel Sliders": "チャンネルスライダー"
 }

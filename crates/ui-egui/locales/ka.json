@@ -1602,7 +1602,8 @@
   "Set Keyword Shortcut…": "საკვანძო სიტყვების მალსახმობის დაყენება…",
   "Add or Remove Keyword Shortcut": "საკვანძო სიტყვების მალსახმობის დამატება ან მოხსნა",
   "Keyword Shortcut": "საკვანძო სიტყვების მალსახმობი",
-  "Part of the keyword shortcut": "საკვანძო სიტყვების მალსახმობის ნაწილი",  "Put agents to work": "აგენტების სამუშაოზე დაყენება",
+  "Part of the keyword shortcut": "საკვანძო სიტყვების მალსახმობის ნაწილი",
+  "Put agents to work": "აგენტების სამუშაოზე დაყენება",
   "Put the locations you removed from Local back (no files change)": "ლოკალურიდან მოშორებული მდებარეობების დაბრუნება (ფაილები არ იცვლება)",
   "Quality": "ხარისხი",
   "Query Photos": "ფოტოების მოთხოვნა",
@@ -3749,6 +3750,16 @@
   "Red ↔ Blue 30 %": "წითელი ↔ ლურჯი 30 %",
   "Mono from Red (IR)": "მონო წითლიდან (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — ინფრაწითელი ფოტოგრაფიის ფორკი.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "ამატებს წითლისა და ლურჯის გაცვლას და ინფრაწითელ არხების მიქსებს sRGB-ში, საკუთარ კამერაზე მიბმულ კამერის პროფილებს და RAW მონაცემებს Nikon High Efficiency NEF ფაილებიდან.",
-  "IR fork on GitHub": "IR ფორკი GitHub-ზე"
+  "IR fork on GitHub": "IR ფორკი GitHub-ზე",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "ამატებს ინფრაწითელი რედაქტირების ჩანართს, წითელი/ლურჯის გაცვლას და ინფრაწითელი არხების მიქსებს sRGB-ში, კამერაზე მიბმულ DCP პროფილებს Lightroom-იდან აღდგენით და Nikon High Efficiency NEF ფაილების RAW მონაცემებს.",
+  "Infrared": "ინფრაწითელი",
+  "Infrared (Shift+I)": "ინფრაწითელი (Shift+I)",
+  "Infrared Panel": "ინფრაწითელი პანელი",
+  "Camera Profile": "კამერის პროფილი",
+  "Import DCP…": "DCP-ის იმპორტი…",
+  "No camera profiles imported for this camera yet.": "ამ კამერისთვის პროფილები ჯერ არ არის იმპორტირებული.",
+  "Camera unknown — reload from disk to match DCP profiles.": "კამერა უცნობია — ხელახლა ჩატვირთეთ დისკიდან DCP პროფილების შესათავსებლად.",
+  "White Balance & Color": "თეთრის ბალანსი და ფერი",
+  "Infrared Channel Mixer": "ინფრაწითელი არხების მიქსერი",
+  "Channel Sliders": "არხების სლაიდერები"
 }

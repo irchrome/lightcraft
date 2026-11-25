@@ -2689,6 +2689,16 @@
   "Red ↔ Blue 30 %": "Красный ↔ синий 30 %",
   "Mono from Red (IR)": "Ч/б из красного (ИК)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — форк для инфракрасной фотографии.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Добавляет обмен красного и синего и ИК-миксы каналов в sRGB, профили камер с привязкой к своей камере и RAW-данные из файлов Nikon High Efficiency NEF.",
-  "IR fork on GitHub": "ИК-форк на GitHub"
+  "IR fork on GitHub": "ИК-форк на GitHub",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Добавляет вкладку «ИК» для обработки, обмен красного и синего и ИК-миксы каналов в sRGB, привязанные к камере DCP-профили с восстановлением камеры из Lightroom и RAW-данные из Nikon High Efficiency NEF.",
+  "Infrared": "ИК",
+  "Infrared (Shift+I)": "ИК (Shift+I)",
+  "Infrared Panel": "Панель ИК",
+  "Camera Profile": "Профиль камеры",
+  "Import DCP…": "Импорт DCP…",
+  "No camera profiles imported for this camera yet.": "Для этой камеры ещё не импортированы профили.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Камера неизвестна — обновите с диска для подбора DCP-профилей.",
+  "White Balance & Color": "Баланс белого и цвет",
+  "Infrared Channel Mixer": "ИК-микшер каналов",
+  "Channel Sliders": "Ползунки каналов"
 }

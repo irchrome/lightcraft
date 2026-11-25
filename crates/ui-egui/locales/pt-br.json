@@ -2327,6 +2327,16 @@
   "Red ↔ Blue 30 %": "Vermelho ↔ azul 30 %",
   "Mono from Red (IR)": "Mono do vermelho (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR — um fork para fotografia infravermelha.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Adiciona troca de vermelho e azul e mixagens de canais infravermelhas em sRGB, perfis de câmera vinculados à própria câmera e dados RAW de arquivos NEF Nikon High Efficiency.",
-  "IR fork on GitHub": "Fork IR no GitHub"
+  "IR fork on GitHub": "Fork IR no GitHub",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Adiciona uma aba de edição Infravermelho, troca de vermelho e azul e mixagens de canais infravermelhas em sRGB, perfis DCP vinculados à câmera com recuperação do Lightroom e dados RAW de arquivos NEF Nikon High Efficiency.",
+  "Infrared": "Infravermelho",
+  "Infrared (Shift+I)": "Infravermelho (Shift+I)",
+  "Infrared Panel": "Painel Infravermelho",
+  "Camera Profile": "Perfil da câmera",
+  "Import DCP…": "Importar DCP…",
+  "No camera profiles imported for this camera yet.": "Nenhum perfil importado para esta câmera ainda.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Câmera desconhecida — recarregue do disco para associar perfis DCP.",
+  "White Balance & Color": "Equilíbrio de branco e cor",
+  "Infrared Channel Mixer": "Mixer de canais infravermelho",
+  "Channel Sliders": "Controles dos canais"
 }

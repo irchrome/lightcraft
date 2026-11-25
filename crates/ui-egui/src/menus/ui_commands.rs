@@ -141,6 +141,7 @@ pub const UI_COMMANDS: &[UiCommand] = &[
     ("view.layoutImageMatte", "Layout Image Matte", None, ""),
     ("view.navigator", "Navigator", None, "View"),
     ("panel.edit", "Edit Panel", Some("E"), "Window"),
+    ("panel.infrared", "Infrared Panel", Some("Shift+I"), "Window"),
     ("panel.profiles", "Profile Browser", None, "Window"),
     ("panel.crop", "Crop & Rotate", Some("C"), "Window"),
     ("panel.remove", "Remove", Some("H"), "Window"),

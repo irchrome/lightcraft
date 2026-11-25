@@ -2,7 +2,7 @@
 
 Repository: `irchrome/lightcraft` (fork of `storytold/lightcraft`). **In git; commits allowed** (one committing agent per repo). Planning, owner decisions, and spike reports live in the IR vault (`~/Documents/IR/tasks/lightcraft-ir/`).
 
-Detailed inventory of the 8 fork features and touched upstream files: read [`docs/IR-FORK-INVENTORY.md`](docs/IR-FORK-INVENTORY.md) before rebasing or touching fork modules.
+Detailed inventory of the 9 fork features and touched upstream files: read [`docs/IR-FORK-INVENTORY.md`](docs/IR-FORK-INVENTORY.md) before rebasing or touching fork modules.
 
 ## Standing Rules on Top of Upstream
 

@@ -13,6 +13,7 @@ pub mod filterbar;
 pub mod grid;
 pub mod histogram;
 pub mod ir_mix;
+pub mod ir_tab;
 pub mod keyword_list;
 pub mod keywording;
 pub mod layout_overlay;

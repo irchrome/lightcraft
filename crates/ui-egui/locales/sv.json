@@ -2544,6 +2544,16 @@
   "Red ↔ Blue 30 %": "Rött ↔ blått 30 %",
   "Mono from Red (IR)": "Mono från rött (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR – en fork för infraröd fotografi.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Lägger till byte av rött och blått och infraröda kanalmixar i sRGB, kameraprofiler knutna till sin kamera och rådata från Nikon High Efficiency NEF-filer.",
-  "IR fork on GitHub": "IR-fork på GitHub"
+  "IR fork on GitHub": "IR-fork på GitHub",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Lägger till en flik för Infraröd redigering, byte av rött och blått och infraröda kanalmixar i sRGB, kamerabundna DCP-profiler med Lightroom-återställning och rådata från Nikon High Efficiency NEF-filer.",
+  "Infrared": "Infraröd",
+  "Infrared (Shift+I)": "Infraröd (Shift+I)",
+  "Infrared Panel": "Infraröd-panel",
+  "Camera Profile": "Kameraprofil",
+  "Import DCP…": "Importera DCP…",
+  "No camera profiles imported for this camera yet.": "Inga kameraprofiler har importerats för denna kamera ännu.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Okänd kamera — ladda om från disk för att matcha DCP-profiler.",
+  "White Balance & Color": "Vitbalans och färg",
+  "Infrared Channel Mixer": "Infraröd kanalmixer",
+  "Channel Sliders": "Kanalskjutreglage"
 }

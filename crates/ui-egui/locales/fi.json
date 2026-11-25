@@ -2440,6 +2440,16 @@
   "Red ↔ Blue 30 %": "Punainen ↔ sininen 30 %",
   "Mono from Red (IR)": "Mono punaisesta (IR)",
   "LightCraft IR — a fork for infrared photography.": "LightCraft IR – haara infrapunavalokuvaukseen.",
-  "Adds red/blue swaps and infrared channel mixes in sRGB, camera profiles bound to their camera, and raw data from Nikon High Efficiency NEF files.": "Lisää punaisen ja sinisen vaihdon ja infrapunakanavasekoitukset sRGB:ssä, omaan kameraansa sidotut kameraprofiilit sekä raakadatan Nikon High Efficiency NEF -tiedostoista.",
-  "IR fork on GitHub": "IR-haara GitHubissa"
+  "IR fork on GitHub": "IR-haara GitHubissa",
+  "Adds an Infrared editing tab, red/blue swaps and infrared channel mixes in sRGB, camera-bound DCP profiles with Lightroom camera recovery, and raw data from Nikon High Efficiency NEF files.": "Lisää Infrapuna-muokkausvälilehden, punaisen ja sinisen vaihdon ja infrapunakanavasekoitukset sRGB:ssä, kameraan sidotut DCP-profiilit Lightroom-palautuksella sekä raakadatan Nikon High Efficiency NEF -tiedostoista.",
+  "Infrared": "Infrapuna",
+  "Infrared (Shift+I)": "Infrapuna (Shift+I)",
+  "Infrared Panel": "Infrapuna-paneeli",
+  "Camera Profile": "Kameraprofiili",
+  "Import DCP…": "Tuo DCP…",
+  "No camera profiles imported for this camera yet.": "Tälle kameralle ei ole vielä tuotu kameraprofiileja.",
+  "Camera unknown — reload from disk to match DCP profiles.": "Kamera tuntematon — lataa uudelleen levyltä DCP-profiilien kohdistamiseksi.",
+  "White Balance & Color": "Valkotasapaino ja väri",
+  "Infrared Channel Mixer": "Infrapunakanavasekoitin",
+  "Channel Sliders": "Kanavaliukusäätimet"
 }
