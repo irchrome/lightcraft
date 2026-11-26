@@ -2540,5 +2540,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Fotoaparát není znám — načtěte znovu z disku pro přiřazení DCP profilů.",
   "White Balance & Color": "Vyvážení bílé a barvy",
   "Infrared Channel Mixer": "Infračervený míchací panel kanálů",
-  "Channel Sliders": "Posuvníky kanálů"
+  "Channel Sliders": "Posuvníky kanálů",
+  "IR Mix Catalog": "Katalog IR mixů",
+  "Swaps": "Záměny",
+  "Swap Variants": "Varianty záměn",
+  "Creative": "Kreativní",
+  "Fitted Looks": "Přizpůsobené styly",
+  "Other": "Ostatní"
 }

@@ -2465,5 +2465,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Kamera tidak dikenal — muat ulang dari disk untuk mencocokkan profil DCP.",
   "White Balance & Color": "Keseimbangan Putih & Warna",
   "Infrared Channel Mixer": "Pencampur Kanal Inframerah",
-  "Channel Sliders": "Penggeser Kanal"
+  "Channel Sliders": "Penggeser Kanal",
+  "IR Mix Catalog": "Katalog Campuran IR",
+  "Swaps": "Tukar Kanal",
+  "Swap Variants": "Varian Tukar",
+  "Creative": "Kreatif",
+  "Fitted Looks": "Gaya Terukur",
+  "Other": "Lainnya"
 }

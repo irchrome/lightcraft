@@ -4,7 +4,8 @@
 //! Order strictly follows the infrared processing workflow:
 //! 1. Camera Profile (camera-bound DCP quick list with live `HoverPreview` + `Amount`)
 //! 2. White Balance & Color (`Temp`/`Tint`, `W` picker, compact `Exposure` / `Vibrance` / `Saturation`)
-//! 3. Infrared Channel Mixer (neutral picker, `Swap Red and Blue (sRGB)`, `More IR mixes`, Reset, 3×3 sliders)
+//! 3. Infrared Channel Mixer (neutral picker, `Swap Red and Blue (sRGB)`, `More IR mixes`,
+//!    extended `IR Mix Catalog`, Reset, 3×3 sliders)
 
 use egui::{CornerRadius, Rect, Sense, Stroke, StrokeKind, pos2, vec2};
 use lightcraft_catalog::{MediaKind, PhotoId};
@@ -260,6 +261,8 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
             super::ir_mix::buttons(app, ui);
         });
 
+        super::ir_mix::catalog_recipes(app, ui, &d);
+
         let sliders_id = egui::Id::unique("irChannelSlidersOpen");
         let sliders_open: bool = ui.data(|m| m.get_temp(sliders_id)).unwrap_or(false);
         if flyout_row(ui, "irChannelSliders", "Channel Sliders", Icon::Sliders, sliders_open).clicked() {
@@ -491,9 +494,24 @@ mod tests {
             "button:irResetMixer",
             "button:mixerSwapRBsRGB",
             "button:irMixes",
+            "flyout:irCatalogMixes",
             "flyout:irChannelSliders",
             "slider:channelMixer.red.red",
             "slider:channelMixer.blue.blue",
+        ] {
+            let r = widget(&h, id).unwrap_or_else(|| panic!("missing widget {id}"));
+            assert!(r.left() >= panel.left() - 0.5 && r.right() <= panel.right() + 0.5, "{id} {r:?} overflows {panel:?}");
+        }
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "flyout:irCatalogMixes"}), T)["ok"], true);
+        h.settle(SETTLE);
+        for id in [
+            "button:irCatalogFilter:all",
+            "button:irCatalogFilter:swap",
+            "button:irCatalogFilter:swap-variant",
+            "button:irCatalogFilter:mono",
+            "button:irCatalogFilter:creative",
+            "button:irCatalogFilter:fit",
+            "irMix:uvf-cyclic-sub-g40-b30",
         ] {
             let r = widget(&h, id).unwrap_or_else(|| panic!("missing widget {id}"));
             assert!(r.left() >= panel.left() - 0.5 && r.right() <= panel.right() + 0.5, "{id} {r:?} overflows {panel:?}");
@@ -514,6 +532,59 @@ mod tests {
             let r = widget(&h, id).unwrap_or_else(|| panic!("missing widget {id}"));
             assert!(r.left() >= panel.left() - 0.5 && r.right() <= panel.right() + 0.5, "{id} {r:?} overflows {panel:?}");
         }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn hub_ir_mix_catalog_lists_filters_hovers_applies_and_toggles() {
+        let (mut h, _, dir) = app_with_nikon_raw_and_dcp("catalog");
+        h.app.run("panel.infrared", json!({})).unwrap();
+        h.app.ui.folded_sections.extend(["irProfile".to_string(), "irWb".to_string()]);
+        h.settle(SETTLE);
+
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "flyout:irCatalogMixes"}), T)["ok"], true);
+        h.settle(SETTLE);
+        for id in ["irMix:own-swap-amber", "irMix:course-mono-swap", "irMix:uvf-fit-gold-foliage-blue-sky"] {
+            assert!(widget(&h, id).is_some(), "missing {id}");
+        }
+
+        // Filter to monochrome
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "button:irCatalogFilter:mono"}), T)["ok"], true);
+        h.settle(SETTLE);
+        assert!(widget(&h, "irMix:course-mono-swap").is_some());
+        assert!(widget(&h, "irMix:own-swap-amber").is_none());
+
+        // Back to all
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "button:irCatalogFilter:all"}), T)["ok"], true);
+        h.settle(SETTLE);
+        assert!(widget(&h, "irMix:own-swap-amber").is_some());
+
+        // Hover preview on extended recipe
+        assert_eq!(h.request("ui.hoverWidget", json!({"id": "irMix:own-swap-amber"}), T)["ok"], true);
+        assert_eq!(h.app.hover_preview.as_ref().and_then(|p| p.settings.ir_mix.as_ref()).map(|m| m.mix.as_str()), Some("own-swap-amber"));
+
+        // Apply extended recipe
+        let pid = h.app.session.active().unwrap();
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "irMix:own-swap-amber"}), T)["ok"], true);
+        h.settle(SETTLE);
+        let d = h.app.session.develop_of(pid).unwrap();
+        assert_eq!(d.ir_mix.as_ref().map(|m| m.mix.as_str()), Some("own-swap-amber"));
+        assert!(!d.channel_mixer.is_identity());
+
+        // Filter to Fitted Looks and replace with another extended recipe (never stacks)
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "button:irCatalogFilter:fit"}), T)["ok"], true);
+        h.settle(SETTLE);
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "irMix:uvf-fit-gold-foliage-blue-sky"}), T)["ok"], true);
+        h.settle(SETTLE);
+        let d = h.app.session.develop_of(pid).unwrap();
+        assert_eq!(d.ir_mix.as_ref().map(|m| m.mix.as_str()), Some("uvf-fit-gold-foliage-blue-sky"));
+
+        // Click active recipe again to toggle off back to identity
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "irMix:uvf-fit-gold-foliage-blue-sky"}), T)["ok"], true);
+        h.settle(SETTLE);
+        let d = h.app.session.develop_of(pid).unwrap();
+        assert!(d.ir_mix.is_none() && d.channel_mixer.is_identity());
+
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

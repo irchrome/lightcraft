@@ -2451,5 +2451,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Kamera tuntematon — lataa uudelleen levyltä DCP-profiilien kohdistamiseksi.",
   "White Balance & Color": "Valkotasapaino ja väri",
   "Infrared Channel Mixer": "Infrapunakanavasekoitin",
-  "Channel Sliders": "Kanavaliukusäätimet"
+  "Channel Sliders": "Kanavaliukusäätimet",
+  "IR Mix Catalog": "IR-sekoitusluettelo",
+  "Swaps": "Vaihdot",
+  "Swap Variants": "Vaihtomuunnelmat",
+  "Creative": "Luova",
+  "Fitted Looks": "Sovitetut tyylit",
+  "Other": "Muu"
 }

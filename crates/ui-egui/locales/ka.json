@@ -3761,5 +3761,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "კამერა უცნობია — ხელახლა ჩატვირთეთ დისკიდან DCP პროფილების შესათავსებლად.",
   "White Balance & Color": "თეთრის ბალანსი და ფერი",
   "Infrared Channel Mixer": "ინფრაწითელი არხების მიქსერი",
-  "Channel Sliders": "არხების სლაიდერები"
+  "Channel Sliders": "არხების სლაიდერები",
+  "IR Mix Catalog": "IR მიქსების კატალოგი",
+  "Swaps": "გაცვლები",
+  "Swap Variants": "გაცვლის ვარიანტები",
+  "Creative": "კრეატიული",
+  "Fitted Looks": "მორგებული სტილები",
+  "Other": "სხვა"
 }

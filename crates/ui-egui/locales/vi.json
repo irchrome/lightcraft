@@ -2779,5 +2779,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Không rõ máy ảnh — tải lại từ đĩa để khớp hồ sơ DCP.",
   "White Balance & Color": "Cân bằng trắng & Màu sắc",
   "Infrared Channel Mixer": "Bộ trộn kênh hồng ngoại",
-  "Channel Sliders": "Thanh trượt kênh"
+  "Channel Sliders": "Thanh trượt kênh",
+  "IR Mix Catalog": "Danh mục trộn kênh IR",
+  "Swaps": "Hoán đổi",
+  "Swap Variants": "Biến thể hoán đổi",
+  "Creative": "Sáng tạo",
+  "Fitted Looks": "Kiểu phối khớp",
+  "Other": "Khác"
 }

@@ -2490,5 +2490,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Камера невідома — перезавантажте з диска для підбору DCP-профілів.",
   "White Balance & Color": "Баланс білого та колір",
   "Infrared Channel Mixer": "ІЧ-мікшер каналів",
-  "Channel Sliders": "Повзунки каналів"
+  "Channel Sliders": "Повзунки каналів",
+  "IR Mix Catalog": "Каталог ІЧ-міксів",
+  "Swaps": "Обміни каналів",
+  "Swap Variants": "Варіанти обміну",
+  "Creative": "Креативні",
+  "Fitted Looks": "Підібрані стилі",
+  "Other": "Інше"
 }

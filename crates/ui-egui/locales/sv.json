@@ -2555,5 +2555,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Okänd kamera — ladda om från disk för att matcha DCP-profiler.",
   "White Balance & Color": "Vitbalans och färg",
   "Infrared Channel Mixer": "Infraröd kanalmixer",
-  "Channel Sliders": "Kanalskjutreglage"
+  "Channel Sliders": "Kanalskjutreglage",
+  "IR Mix Catalog": "IR-mixkatalog",
+  "Swaps": "Byten",
+  "Swap Variants": "Bytesvarianter",
+  "Creative": "Kreativ",
+  "Fitted Looks": "Anpassade stilar",
+  "Other": "Övrigt"
 }

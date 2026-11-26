@@ -2492,5 +2492,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "カメラが不明です — ディスクから再読み込みして DCP プロファイルを照合してください。",
   "White Balance & Color": "ホワイトバランスとカラー",
   "Infrared Channel Mixer": "赤外線チャンネルミキサー",
-  "Channel Sliders": "チャンネルスライダー"
+  "Channel Sliders": "チャンネルスライダー",
+  "IR Mix Catalog": "IR ミックスカタログ",
+  "Swaps": "スワップ",
+  "Swap Variants": "スワップ派生",
+  "Creative": "クリエイティブ",
+  "Fitted Looks": "近似ルック",
+  "Other": "その他"
 }

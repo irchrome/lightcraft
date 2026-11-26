@@ -2417,5 +2417,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "Nieznany aparat — przeładuj z dysku, aby dopasować profile DCP.",
   "White Balance & Color": "Balans bieli i kolor",
   "Infrared Channel Mixer": "Mikser kanałów podczerwieni",
-  "Channel Sliders": "Suwaki kanałów"
+  "Channel Sliders": "Suwaki kanałów",
+  "IR Mix Catalog": "Katalog miksów IR",
+  "Swaps": "Zamiany",
+  "Swap Variants": "Warianty zamian",
+  "Creative": "Kreatywne",
+  "Fitted Looks": "Dopasowane style",
+  "Other": "Inne"
 }

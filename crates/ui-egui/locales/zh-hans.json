@@ -2493,5 +2493,11 @@
   "Camera unknown — reload from disk to match DCP profiles.": "相机未知 — 从磁盘重新加载以匹配 DCP 配置文件。",
   "White Balance & Color": "白平衡与色彩",
   "Infrared Channel Mixer": "红外通道混合器",
-  "Channel Sliders": "通道滑块"
+  "Channel Sliders": "通道滑块",
+  "IR Mix Catalog": "红外混合目录",
+  "Swaps": "通道互换",
+  "Swap Variants": "互换变体",
+  "Creative": "创意",
+  "Fitted Looks": "拟合风格",
+  "Other": "其他"
 }
