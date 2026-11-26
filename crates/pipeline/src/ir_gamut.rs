@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn the_gpu_kernel_uses_the_same_constants() {
-        let wgsl = include_str!("../../gpu/src/wgsl/finish.wgsl");
+        let wgsl = std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../gpu/src/wgsl/finish.wgsl")).unwrap();
         assert!(wgsl.contains(&format!("const IR_THRESHOLD: f32 = {THRESHOLD:?};")), "IR_THRESHOLD");
         assert!(wgsl.contains(&format!("const IR_POWER: f32 = {POWER:?};")), "IR_POWER");
     }

@@ -6,10 +6,14 @@ fn wasm_set() -> Result<Vec<String>, String> {
     let crates = layers::from_metadata(&metadata()?)?;
     Ok(crates
         .into_iter()
-        .filter(|c| match layers::classify(&c.name) {
-            Some(layers::Class::Layer(l)) => l <= 5,
-            Some(layers::Class::Standalone) => true,
-            _ => false,
+        .filter(|c| {
+            // `lightcraft-nikon-he` is a native C FFI shim over local LibRaw and cannot target wasm32.
+            c.name != "lightcraft-nikon-he"
+                && match layers::classify(&c.name) {
+                    Some(layers::Class::Layer(l)) => l <= 5,
+                    Some(layers::Class::Standalone) => true,
+                    _ => false,
+                }
         })
         .map(|c| c.name)
         .chain(std::iter::once("lightcraft-web".to_string()))

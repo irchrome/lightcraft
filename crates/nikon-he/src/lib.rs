@@ -4,6 +4,7 @@
 //! (black and white levels, white balance, colour, crop) stays with LightCraft's own NEF reader.
 
 #![allow(unsafe_code)] // FFI into the local LibRaw build; every block below states its invariant
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 use std::ffi::{c_char, c_int, c_uint, c_ushort, c_void};
 
