@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "consumer": "lightcraft",
-  "hub_commit": "c23dbbb28809f69d33910e7bf378e55413326023",
+  "hub_commit": "874062d577436c03eb6a00543c0b0db75442a155",
   "clean_room": true,
-  "generated_at": "2026-11-25T23:40:52+00:00",
+  "generated_at": "2026-11-26T08:36:43+00:00",
   "recipe_count": 46,
   "skipped_recipes": {
     "core-mono-red": "duplicate_matrix_of:lc-mono-red",
