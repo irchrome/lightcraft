@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "consumer": "lightcraft",
-  "hub_commit": "874062d577436c03eb6a00543c0b0db75442a155",
+  "hub_commit": "be5b9d9928c790dc134f6b45d57a38b0905a6a80",
   "clean_room": true,
-  "generated_at": "2026-11-26T08:36:43+00:00",
+  "generated_at": "2026-11-26T08:44:58+00:00",
   "recipe_count": 46,
   "skipped_recipes": {
     "core-mono-red": "duplicate_matrix_of:lc-mono-red",
@@ -100,6 +100,6 @@
   "files": {
     "crates/pipeline/assets/ir_mix_catalog.json": "9a3637bb3c9579c924993af8b233b28873903abe2824b286c25e8cd915fbfd29",
     "crates/pipeline/src/ir_mix_catalog.rs": "dcf34a4dfcc0f3cdcf2d02f3a342c60d7a0f44c24a8dd3ea51896dacd1377613",
-    "tests/corpus-manifests/raws.sha256": "c3bd2ad704fea0ef37ea16d1045ec6e1c255cca3d8ce29ecdca65aba62b6e615"
+    "tests/corpus-manifests/raws.sha256": "9c6d791a1e3ab2a404d9c6891502ea96ef3b26a04ccae4fd0d7f55bbf889b070"
   }
 }
