@@ -41,19 +41,11 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui) {
                     ("masking", Icon::Mask, RightPanel::Masking, "Masking (M)"),
                     ("redeye", Icon::Eye, RightPanel::RedEye, "Red Eye"),
                 ] {
-                    let on = if panel == RightPanel::Edit {
-                        (app.ui.right == RightPanel::Edit && !app.ui.ir_tab) || app.ui.right == RightPanel::Profiles
-                    } else {
-                        app.ui.right == panel
-                    };
+                    let on = app.ui.right == panel || (panel == RightPanel::Edit && app.ui.right == RightPanel::Profiles);
                     if icon_button(ui, id, icon, sz, on, has_photo, tip).clicked() {
                         let _ = app.run(&format!("panel.{id}"), json!({}));
                     }
                     if id == "edit" {
-                        let ir_on = app.ui.right == RightPanel::Edit && app.ui.ir_tab;
-                        if icon_button(ui, "infrared", Icon::Sun, sz, ir_on, has_photo, "Infrared (Shift+I)").clicked() {
-                            let _ = app.run("panel.infrared", json!({}));
-                        }
                         separator(ui, &t);
                     }
                 }

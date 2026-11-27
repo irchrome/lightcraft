@@ -117,7 +117,45 @@ fn picker_bar(app: &mut LightcraftApp, ui: &mut egui::Ui, wb_id: &str, mixer_id:
     });
 }
 
-fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, raw: bool) {
+fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, id: PhotoId, raw: bool) {
+    let t = Tokens::get(ui.ctx());
+    let ir_dcps: Vec<(String, String)> = app
+        .session
+        .imported_profiles_for(Some(id))
+        .into_iter()
+        .filter(|(pid, name, _)| is_dcp_id(pid) && !is_chrome_profile(pid, name))
+        .map(|(pid, name, _)| (pid, name))
+        .collect();
+    let is_raw = app.session.catalog.photo(id).is_some_and(|p| p.kind == MediaKind::Raw);
+
+    sub_title(ui, "Camera Profile");
+    egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 2, bottom: 6 }).show(ui, |ui| {
+        ui.spacing_mut().item_spacing.y = 3.0;
+        let color_label = crate::i18n::tr("Color").to_string();
+        profile_row(app, ui, d, "irFcProfile", "lc.color", &color_label);
+        for (pid, name) in &ir_dcps {
+            profile_row(app, ui, d, "irFcProfile", pid, name);
+        }
+        if is_raw && ir_dcps.is_empty() {
+            ui.add_space(2.0);
+            ui.label(egui::RichText::new(crate::i18n::tr("No IR camera profiles for this camera yet.")).size(11.5).color(t.text_dim));
+        }
+        ui.add_space(2.0);
+        ui.horizontal_wrapped(|ui| {
+            if text_button(ui, "irFcImportDcp", "Import DCP…", false).clicked() {
+                let _ = app.run("file.importPresets", json!({}));
+            }
+            if text_button(ui, "irFcBrowseProfiles", "Browse Profiles", false).clicked() {
+                let _ = app.run("panel.profiles", json!({}));
+            }
+        });
+    });
+    if d.profile.id != "lc.color" {
+        control(app, ui, d, "profile.amount", true);
+        ui.add_space(4.0);
+    }
+
+    sub_title(ui, "White Balance");
     picker_bar(app, ui, "irFcWbPicker", "irFcMixerPicker", "irFcResetMixer", "channelMixer");
     wb_controls(app, ui, d, raw);
 
@@ -187,7 +225,7 @@ fn mono_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings)
     ui.add_space(8.0);
 }
 
-fn chrome_profile_row(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, pid: &str, label: &str) {
+fn profile_row(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, prefix: &str, pid: &str, label: &str) {
     let t = Tokens::get(ui.ctx());
     let active = d.profile.id == pid;
     let row_w = ui.available_width().max(40.0);
@@ -195,7 +233,7 @@ fn chrome_profile_row(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSet
     let shown = if fav { format!("★ {label}") } else { label.to_string() };
     let (r, resp) = ui.allocate_exact_size(vec2(row_w, 24.0), Sense::click());
     crate::widgets::announce_selected(&resp, shown.clone(), active);
-    register(ui, format!("irAeroProfile:{pid}"), r);
+    register(ui, format!("{prefix}:{pid}"), r);
     let fill = if active {
         t.tool_active
     } else if resp.hovered() {
@@ -237,9 +275,9 @@ fn aerochrome_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSet
     egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 2, bottom: 6 }).show(ui, |ui| {
         ui.spacing_mut().item_spacing.y = 3.0;
         let color_label = crate::i18n::tr("Color").to_string();
-        chrome_profile_row(app, ui, d, "lc.color", &color_label);
+        profile_row(app, ui, d, "irAeroProfile", "lc.color", &color_label);
         for (pid, name) in &chrome_dcps {
-            chrome_profile_row(app, ui, d, pid, name);
+            profile_row(app, ui, d, "irAeroProfile", pid, name);
         }
         if is_raw && chrome_dcps.is_empty() {
             ui.add_space(2.0);
@@ -293,9 +331,9 @@ fn aerochrome_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSet
     ui.add_space(8.0);
 }
 
-/// Dedicated infrared workflow sections appended inside the `Edit` panel (`RightPanel::Edit`).
+/// Dedicated infrared workflow sections prepended at the top of the `Edit` panel (`RightPanel::Edit`).
 pub fn sections(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, id: PhotoId, raw: bool) {
-    ir_section(app, ui, "irFalseColor", "IR-FALSE-COLOR", |app, ui| false_color_section(app, ui, d, raw));
+    ir_section(app, ui, "irFalseColor", "IR-FALSE-COLOR", |app, ui| false_color_section(app, ui, d, id, raw));
     ir_section(app, ui, "irMono", "IR-MONO", |app, ui| mono_section(app, ui, d));
     ir_section(app, ui, "irAerochrome", "AEROCHROME", |app, ui| aerochrome_section(app, ui, d, id, raw));
 }
@@ -417,10 +455,12 @@ mod tests {
 
     #[test]
     fn ir_false_color_and_ir_mono_sections_fit_and_apply_mixes() {
-        let (mut h, _, _, dir) = app_with_nikon_raw_and_dcps("fc-mono");
-        assert!(widget(&h, "section:irFalseColor").is_some());
-        assert!(widget(&h, "section:irMono").is_some());
-        assert!(widget(&h, "section:irAerochrome").is_some());
+        let (mut h, ir_id, chrome_id, dir) = app_with_nikon_raw_and_dcps("fc-mono");
+        let fc = widget(&h, "section:irFalseColor").expect("irFalseColor");
+        let _mono = widget(&h, "section:irMono").expect("irMono");
+        let aero = widget(&h, "section:irAerochrome").expect("irAerochrome");
+        let light = widget(&h, "section:light").expect("light");
+        assert!(fc.bottom() <= aero.top() + 2.0 && aero.bottom() <= light.top() + 2.0, "IR sections must appear above Light");
 
         h.request("ui.set", json!({"rightWidth": RIGHT_WIDTH.min}), T);
         h.settle(SETTLE);
@@ -429,12 +469,20 @@ mod tests {
 
         h.app.run("section.irFalseColor", json!({"solo": true})).unwrap();
         h.settle(SETTLE);
+        let ir_widget = format!("irFcProfile:{ir_id}");
+        let chrome_widget = format!("irFcProfile:{chrome_id}");
+        assert!(widget(&h, &ir_widget).is_some(), "missing IR DCP in IR-FALSE-COLOR");
+        assert!(widget(&h, &chrome_widget).is_none(), "Chrome DCP must not appear in IR-FALSE-COLOR");
         assert!(widget(&h, "irFcMix:own-swap-amber").is_some());
         assert!(widget(&h, "irFcMix:course-mono-swap").is_none());
         assert_fits(
             &h,
             panel,
             &[
+                "irFcProfile:lc.color",
+                &ir_widget,
+                "button:irFcImportDcp",
+                "button:irFcBrowseProfiles",
                 "icon:irFcWbPicker",
                 "icon:irFcMixerPicker",
                 "button:irFcResetMixer",
@@ -450,6 +498,20 @@ mod tests {
         h.settle(SETTLE);
         let pid = h.app.session.active().unwrap();
         assert_eq!(h.app.session.develop_of(pid).unwrap().ir_mix.as_ref().map(|m| m.mix.as_str()), Some("own-swap-amber"));
+
+        assert_eq!(h.request("ui.hoverWidget", json!({"id": ir_widget}), T)["ok"], true);
+        let preview = h.app.hover_preview.as_ref().expect("hover preview");
+        assert_eq!(preview.settings.profile.id, ir_id);
+        assert!(preview.settings.ir_mix.is_none());
+        assert!(preview.settings.channel_mixer.is_identity());
+
+        assert_eq!(h.request("ui.clickWidget", json!({"id": ir_widget}), T)["ok"], true);
+        h.settle(SETTLE);
+        let d = h.app.session.develop_of(pid).unwrap();
+        assert_eq!(d.profile.id, ir_id);
+        assert!(d.ir_mix.is_none(), "swap must auto-reset on profile change");
+        assert!(d.channel_mixer.is_identity(), "channel mixer must auto-reset on profile change");
+        assert_fits(&h, panel, &["slider:profile.amount"]);
 
         h.app.run("section.irMono", json!({"solo": true})).unwrap();
         h.settle(SETTLE);

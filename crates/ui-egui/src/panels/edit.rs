@@ -177,6 +177,8 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         });
     }
     divider(ui);
+    // fork (infrared): dedicated IR-FALSE-COLOR / IR-MONO / AEROCHROME Edit sections
+    super::ir_edit::sections(app, ui, &d, id, raw);
 
     section(app, ui, &d, "light", "Light", |app, ui, d| {
         hdr_row(app, ui, d, id);
@@ -445,8 +447,6 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         }
         ui.add_space(8.0);
     });
-    // fork (infrared): dedicated IR-FALSE-COLOR / IR-MONO / AEROCHROME Edit sections
-    super::ir_edit::sections(app, ui, &d, id, raw);
     ui.add_space(40.0);
     // A pending numeric edit commits on blur before the explicit Reset takes precedence.
     if reset_clicked {

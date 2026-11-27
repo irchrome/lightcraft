@@ -49,8 +49,8 @@ pub mod updates_ui;
 /// About dialog tabs: (widget id suffix, label). The credits come from `crate::credits`.
 pub const ABOUT_TABS: &[(&str, &str)] = &[("about", "About"), ("contributors", "Contributors"), ("models", "Models")];
 
-/// Help ▸ What's New (docs/whats-new.md).
-pub const WHATS_NEW: &str = include_str!("../../../docs/whats-new.md");
+/// Help ▸ What's New (IR fork release notes: docs/whats-new-ir.md).
+pub const WHATS_NEW: &str = include_str!("../../../docs/whats-new-ir.md");
 
 /// A line of What's New as the dialog shows it, in the UI language. The notes are written like the
 /// docs, with symbols Inter lacks (issue #1950): ▸ between menu items shows as → (as in the

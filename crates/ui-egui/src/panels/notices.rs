@@ -685,10 +685,14 @@ pub fn show(app: &mut LightcraftApp, ctx: &egui::Context) {
             return;
         }
         let buttons = [("noticeOk", "OK", Choice::Ok)];
-        if window(ctx, "settings-notice", "Settings file problem", &text, &buttons, &mut app.notice_input).is_some() {
+        if window(ctx, "settings-notice", notice_title(&text), &text, &buttons, &mut app.notice_input).is_some() {
             app.notices.remove(0);
         }
     }
+}
+
+fn notice_title(text: &str) -> &'static str {
+    if text.starts_with("This library was upgraded") { "Library upgraded" } else { "Settings file problem" }
 }
 
 #[cfg(test)]
@@ -835,5 +839,11 @@ mod tests {
             assert_eq!(gpu_notice(Some(reason), true), None, "{reason}");
         }
         assert_eq!(gpu_notice(None, true), None, "the GPU is in use");
+    }
+
+    #[test]
+    fn library_upgrade_notice_uses_non_alarming_title() {
+        assert_eq!(super::notice_title("This library was upgraded for this version of LightCraft."), "Library upgraded");
+        assert_eq!(super::notice_title("Could not read prefs.json"), "Settings file problem");
     }
 }
