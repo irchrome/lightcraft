@@ -11,6 +11,13 @@ fn active(s: &Session, c: &str) -> Result<lightcraft_catalog::PhotoId> {
     s.active().ok_or_else(|| bad(c, "no active photo"))
 }
 
+/// Fork (infrared): changing the camera profile invalidates any active IR swap or channel-mixer
+/// neutral pick calibrated for the previous profile's colour matrices.
+pub(crate) fn reset_swap_on_profile_change(d: &mut lightcraft_develop::DevelopSettings) {
+    d.channel_mixer = lightcraft_develop::ChannelMixer::default();
+    d.ir_mix = None;
+}
+
 fn finish_mix(s: &mut Session, id: lightcraft_catalog::PhotoId, d: lightcraft_develop::DevelopSettings, darker: f64, label: &str) -> Result<Value> {
     let mut d = d;
     if !d.section_enabled("channelMixer") {
@@ -203,5 +210,47 @@ mod tests {
         assert!(!mixer(&s).is_identity());
         s.execute("edit.undo", &json!({})).unwrap();
         assert!(mixer(&s).is_identity());
+    }
+
+    #[test]
+    fn changing_profile_resets_active_swap_and_undoes_together() {
+        let mut s = Session::with_demo();
+        s.execute("develop.mixerSwapRBsRGB", &json!({})).unwrap();
+        let pid = s.active().unwrap();
+        assert!(!mixer(&s).is_identity());
+        assert!(s.develop_of(pid).unwrap().ir_mix.is_some());
+
+        s.execute("develop.profile", &json!({"id": "lc.vivid"})).unwrap();
+        let d = s.develop_of(pid).unwrap();
+        assert_eq!(d.profile.id, "lc.vivid");
+        assert!(d.channel_mixer.is_identity());
+        assert!(d.ir_mix.is_none());
+
+        s.execute("edit.undo", &json!({})).unwrap();
+        let d = s.develop_of(pid).unwrap();
+        assert_eq!(d.profile.id, "lc.color");
+        assert!(!d.channel_mixer.is_identity());
+        assert!(d.ir_mix.is_some());
+    }
+
+    #[test]
+    fn changing_profile_resets_manual_channel_mixer_too() {
+        let mut s = Session::with_demo();
+        s.execute("develop.set", &json!({"control": "channelMixer.red.blue", "value": 100.0})).unwrap();
+        assert!(!mixer(&s).is_identity());
+        s.execute("develop.profile", &json!({"id": "lc.vivid"})).unwrap();
+        assert!(mixer(&s).is_identity());
+    }
+
+    #[test]
+    fn same_profile_amount_change_keeps_swap() {
+        let mut s = Session::with_demo();
+        s.execute("develop.mixerSwapRBsRGB", &json!({})).unwrap();
+        let swapped = mixer(&s);
+        s.execute("develop.profile", &json!({"id": "lc.color", "amount": 80.0})).unwrap();
+        let d = s.develop_of(s.active().unwrap()).unwrap();
+        assert_eq!(d.profile.amount, 80.0);
+        assert_eq!(d.channel_mixer, swapped);
+        assert!(d.ir_mix.is_some());
     }
 }

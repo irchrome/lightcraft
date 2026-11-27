@@ -143,6 +143,7 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
                     let mut s = (*d).clone();
                     s.profile.id = pid.clone();
                     s.profile.amount = 100.0;
+                    super::ir_mix::reset_swap_preview(&mut s);
                     app.hover_preview =
                         Some(HoverPreview { label: crate::i18n::tr_format!("Profile: {}", crate::i18n::profile_label(pid, label)), settings: s });
                 }

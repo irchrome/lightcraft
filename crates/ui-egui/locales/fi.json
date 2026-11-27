@@ -2457,5 +2457,16 @@
   "Swap Variants": "Vaihtomuunnelmat",
   "Creative": "Luova",
   "Fitted Looks": "Sovitetut tyylit",
-  "Other": "Muu"
+  "Other": "Muu",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Väärävärisekoitukset",
+  "Tone & Contrast": "Sävy ja kontrasti",
+  "Chrome Profiles": "Chrome-profiilit",
+  "No Chrome camera profiles for this camera yet.": "Tälle kameralle ei ole vielä Chrome-profiileja.",
+  "Foliage & Sky HSL": "Kasvusto ja taivas HSL",
+  "Primary Calibration": "Päävärien kalibrointi",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Valkotasapainopipetti (W) — valitse lehvästö tai harmaa IR DCP:n jälkeen",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Kanavasekoittimen neutraali — pakottaa valitun kohdan täysin valkoiseksi"
 }

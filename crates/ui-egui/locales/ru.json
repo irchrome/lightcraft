@@ -2706,5 +2706,16 @@
   "Swap Variants": "Варианты обмена",
   "Creative": "Креативные",
   "Fitted Looks": "Подобранные стили",
-  "Other": "Другое"
+  "Other": "Другое",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Псевдоцветные миксы",
+  "Tone & Contrast": "Тон и контраст",
+  "Chrome Profiles": "Профили Chrome",
+  "No Chrome camera profiles for this camera yet.": "Для этой камеры ещё нет Chrome-профилей.",
+  "Foliage & Sky HSL": "HSL листвы и неба",
+  "Primary Calibration": "Калибровка основных цветов",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Пипетка баланса белого (W) — укажите на листву или серый после выбора ИК-DCP",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Нейтральная пипетка микшера каналов — выводит выбранную точку в чистый белый"
 }

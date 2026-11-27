@@ -2546,5 +2546,16 @@
   "Swap Variants": "Varianty záměn",
   "Creative": "Kreativní",
   "Fitted Looks": "Přizpůsobené styly",
-  "Other": "Ostatní"
+  "Other": "Ostatní",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Falešně barevné mixy",
+  "Tone & Contrast": "Tón a kontrast",
+  "Chrome Profiles": "Profily Chrome",
+  "No Chrome camera profiles for this camera yet.": "Pro tento fotoaparát zatím nejsou žádné Chrome profily.",
+  "Foliage & Sky HSL": "HSL listoví a oblohy",
+  "Primary Calibration": "Kalibrace primárních barev",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Kapátko vyvážení bílé (W) — vyberte listoví nebo šedou po zvolení IR DCP",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Neutrální kapátko míchání kanálů — převede vybrané místo přesně na bílou"
 }

@@ -2496,5 +2496,16 @@
   "Swap Variants": "Варіанти обміну",
   "Creative": "Креативні",
   "Fitted Looks": "Підібрані стилі",
-  "Other": "Інше"
+  "Other": "Інше",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Псевдокольорові мікси",
+  "Tone & Contrast": "Тон і контраст",
+  "Chrome Profiles": "Профілі Chrome",
+  "No Chrome camera profiles for this camera yet.": "Для цієї камери ще немає профілів Chrome.",
+  "Foliage & Sky HSL": "HSL листя та неба",
+  "Primary Calibration": "Калібрування основних кольорів",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Піпетка балансу білого (W) — виберіть листя або сіре після вибору ІЧ-DCP",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Нейтральна піпетка мікшера каналів — виводить обрану точку в чистий білий"
 }

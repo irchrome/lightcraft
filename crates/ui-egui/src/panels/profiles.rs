@@ -139,6 +139,7 @@ fn with_profile_id(d: &DevelopSettings, profile_id: &str) -> DevelopSettings {
     if s.profile.id != profile_id {
         s.profile.id = profile_id.to_string();
         s.profile.amount = 100.0;
+        super::ir_mix::reset_swap_preview(&mut s);
     }
     s
 }

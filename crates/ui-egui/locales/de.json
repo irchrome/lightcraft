@@ -3581,5 +3581,16 @@
   "Swap Variants": "Tausch-Varianten",
   "Creative": "Kreativ",
   "Fitted Looks": "Angepasste Looks",
-  "Other": "Sonstige"
+  "Other": "Sonstige",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Falschfarben-Mixe",
+  "Tone & Contrast": "Tonwert & Kontrast",
+  "Chrome Profiles": "Chrome-Profile",
+  "No Chrome camera profiles for this camera yet.": "Für diese Kamera sind noch keine Chrome-Profile vorhanden.",
+  "Foliage & Sky HSL": "Laub & Himmel HSL",
+  "Primary Calibration": "Primärkalibrierung",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Weißabgleich-Pipette (W) — Laub oder Grau nach Auswahl eines IR-DCP wählen",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Kanalmixer Neutral — setzt den gewählten Punkt exakt auf Weiß"
 }

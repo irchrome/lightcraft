@@ -166,6 +166,9 @@ pub const UI_COMMANDS: &[UiCommand] = &[
     ("section.lensBlur", "Lens Blur", Some("Cmd+6"), "Window>Edit Sections"),
     ("section.calibration", "Calibration", None, ""),
     ("section.channelMixer", "Channel Mixer", None, ""),
+    ("section.irFalseColor", "IR-FALSE-COLOR", None, ""),
+    ("section.irMono", "IR-MONO", None, ""),
+    ("section.irAerochrome", "AEROCHROME", None, ""),
     // {on?}; no params toggles. Opening one Edit section closes the others.
     ("view.soloSections", "Solo Mode", None, "Window>Edit Sections"),
     ("tool.brush", "Brush", Some("B"), "Window>Tools"),

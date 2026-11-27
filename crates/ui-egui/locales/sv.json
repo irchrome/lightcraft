@@ -2561,5 +2561,16 @@
   "Swap Variants": "Bytesvarianter",
   "Creative": "Kreativ",
   "Fitted Looks": "Anpassade stilar",
-  "Other": "Övrigt"
+  "Other": "Övrigt",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Falskfärgsmixar",
+  "Tone & Contrast": "Ton och kontrast",
+  "Chrome Profiles": "Chrome-profiler",
+  "No Chrome camera profiles for this camera yet.": "Inga Chrome-profiler för denna kamera ännu.",
+  "Foliage & Sky HSL": "Lövverk & himmel HSL",
+  "Primary Calibration": "Primärkalibrering",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Vitbalanspipett (W) — välj lövverk eller grått efter IR-DCP",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Kanalmixer neutral — tvingar vald punkt till rent vitt"
 }

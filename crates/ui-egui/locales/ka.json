@@ -3767,5 +3767,16 @@
   "Swap Variants": "გაცვლის ვარიანტები",
   "Creative": "კრეატიული",
   "Fitted Looks": "მორგებული სტილები",
-  "Other": "სხვა"
+  "Other": "სხვა",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "ცრუ ფერების მიქსები",
+  "Tone & Contrast": "ტონი და კონტრასტი",
+  "Chrome Profiles": "Chrome პროფილები",
+  "No Chrome camera profiles for this camera yet.": "ამ კამერისთვის Chrome პროფილები ჯერ არ არის.",
+  "Foliage & Sky HSL": "ფოთლებისა და ცის HSL",
+  "Primary Calibration": "ძირითადი ფერების კალიბრაცია",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "თეთრის ბალანსის პიპეტი (W) — აირჩიეთ ფოთლები ან ნაცრისფერი IR DCP-ის შემდეგ",
+  "Channel Mixer Neutral — forces picked spot to exact white": "არხების მიქსერის ნეიტრალი — არჩეულ წერტილს ზუსტ თეთრად აქცევს"
 }

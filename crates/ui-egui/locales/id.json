@@ -2471,5 +2471,16 @@
   "Swap Variants": "Varian Tukar",
   "Creative": "Kreatif",
   "Fitted Looks": "Gaya Terukur",
-  "Other": "Lainnya"
+  "Other": "Lainnya",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Campuran Warna Semu",
+  "Tone & Contrast": "Nada & Kontras",
+  "Chrome Profiles": "Profil Chrome",
+  "No Chrome camera profiles for this camera yet.": "Belum ada profil Chrome untuk kamera ini.",
+  "Foliage & Sky HSL": "HSL Dedaunan & Langit",
+  "Primary Calibration": "Kalibrasi Primer",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Pemilih Keseimbangan Putih (W) — pilih dedaunan atau abu-abu setelah DCP IR",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Netral Pencampur Kanal — memaksa titik terpilih menjadi putih murni"
 }

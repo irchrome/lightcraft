@@ -2499,5 +2499,16 @@
   "Swap Variants": "互换变体",
   "Creative": "创意",
   "Fitted Looks": "拟合风格",
-  "Other": "其他"
+  "Other": "其他",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "伪彩色混合",
+  "Tone & Contrast": "色调与对比度",
+  "Chrome Profiles": "Chrome 配置文件",
+  "No Chrome camera profiles for this camera yet.": "此相机暂无 Chrome 配置文件。",
+  "Foliage & Sky HSL": "枝叶与天空 HSL",
+  "Primary Calibration": "三原色校准",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "白平衡吸管 (W) — 选择红外 DCP 后点选枝叶或中性灰",
+  "Channel Mixer Neutral — forces picked spot to exact white": "通道混合器中性吸管 — 将所选点强制校正为纯白"
 }

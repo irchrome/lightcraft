@@ -181,6 +181,7 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         let mut s = d.clone();
         s.profile.id = hovered_id.clone();
         s.profile.amount = 100.0;
+        super::super::ir_mix::reset_swap_preview(&mut s);
         app.hover_preview =
             Some(crate::HoverPreview { label: crate::i18n::tr_format!("Profile: {}", crate::i18n::profile_label(hovered_id, name)), settings: s });
     }

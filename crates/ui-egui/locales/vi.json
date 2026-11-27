@@ -2785,5 +2785,16 @@
   "Swap Variants": "Biến thể hoán đổi",
   "Creative": "Sáng tạo",
   "Fitted Looks": "Kiểu phối khớp",
-  "Other": "Khác"
+  "Other": "Khác",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Công thức trộn màu giả",
+  "Tone & Contrast": "Tông & Tương phản",
+  "Chrome Profiles": "Hồ sơ Chrome",
+  "No Chrome camera profiles for this camera yet.": "Chưa có hồ sơ Chrome nào cho máy ảnh này.",
+  "Foliage & Sky HSL": "HSL tán lá & bầu trời",
+  "Primary Calibration": "Hiệu chuẩn màu gốc",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Chọn cân bằng trắng (W) — chấm lá cây hoặc xám sau khi chọn DCP IR",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Trung tính bộ trộn kênh — đưa điểm đã chọn về trắng chuẩn"
 }

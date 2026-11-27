@@ -2498,5 +2498,16 @@
   "Swap Variants": "スワップ派生",
   "Creative": "クリエイティブ",
   "Fitted Looks": "近似ルック",
-  "Other": "その他"
+  "Other": "その他",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "フォルスカラーミックス",
+  "Tone & Contrast": "階調とコントラスト",
+  "Chrome Profiles": "Chrome プロファイル",
+  "No Chrome camera profiles for this camera yet.": "このカメラ用の Chrome プロファイルはまだありません。",
+  "Foliage & Sky HSL": "葉と空の HSL",
+  "Primary Calibration": "原色キャリブレーション",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "ホワイトバランス選択ツール (W) — IR DCP 選択後に葉やグレーをクリック",
+  "Channel Mixer Neutral — forces picked spot to exact white": "チャンネルミキサーニュートラル — クリックした位置を純白に補正"
 }

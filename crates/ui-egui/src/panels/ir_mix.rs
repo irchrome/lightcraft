@@ -23,7 +23,7 @@ const FAMILIES: &[(&str, &str)] = &[
 ];
 
 /// Run one fork mix command and say when the mix had to be scaled into ±200 % (the photo is darker).
-fn run(app: &mut LightcraftApp, ui: &Ui, command: &str, params: serde_json::Value) {
+pub(crate) fn run(app: &mut LightcraftApp, ui: &Ui, command: &str, params: serde_json::Value) {
     match app.run(command, params) {
         Ok(r) => {
             let darker = r["darker"].as_f64().unwrap_or(0.0);
@@ -33,6 +33,12 @@ fn run(app: &mut LightcraftApp, ui: &Ui, command: &str, params: serde_json::Valu
         }
         Err(e) => app.toast(ui.ctx(), e),
     }
+}
+
+/// Clear any active IR swap/mixer when previewing a different profile so hover matches click.
+pub(crate) fn reset_swap_preview(s: &mut DevelopSettings) {
+    s.channel_mixer = lightcraft_develop::ChannelMixer::default();
+    s.ir_mix = None;
 }
 
 /// The sRGB swap, a toggle for the other infrared mixes, and those mixes when open (state per session). The IR mix
@@ -65,7 +71,7 @@ pub fn buttons(app: &mut LightcraftApp, ui: &mut Ui) {
     }
 }
 
-fn catalog_row(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings, spec: &HubIrMixSpec, widget_id: &str, active: bool) {
+pub(crate) fn mix_row(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings, spec: &HubIrMixSpec, widget_id: &str, active: bool) {
     let t = Tokens::get(ui.ctx());
     let row_w = ui.available_width().max(40.0);
     let (r, resp) = ui.allocate_exact_size(vec2(row_w, 24.0), Sense::click());
@@ -95,11 +101,19 @@ fn catalog_row(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings, spec: 
     }
     let resp = if elided { resp.on_hover_text(spec.name) } else { resp };
     if resp.clicked() {
-        run(app, ui, "develop.mixerIrMix", json!({"mix": spec.id}));
+        run(app, ui, "develop.mixerIrMix", json!({"mix": spec.ir_mix_id.unwrap_or(spec.id)}));
     }
 }
 
-fn render_group(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings, active_id: Option<&str>, heading: Option<&str>, specs: &[&HubIrMixSpec]) {
+pub(crate) fn render_group(
+    app: &mut LightcraftApp,
+    ui: &mut Ui,
+    d: &DevelopSettings,
+    active_id: Option<&str>,
+    heading: Option<&str>,
+    id_prefix: &str,
+    specs: &[&HubIrMixSpec],
+) {
     if specs.is_empty() {
         return;
     }
@@ -110,7 +124,8 @@ fn render_group(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings, activ
     }
     for spec in specs {
         let active = active_id == Some(spec.id);
-        catalog_row(app, ui, d, spec, &format!("irMix:{}", spec.id), active);
+        let cmd_id = spec.ir_mix_id.unwrap_or(spec.id);
+        mix_row(app, ui, d, spec, &format!("{id_prefix}:{cmd_id}"), active);
     }
 }
 
@@ -127,7 +142,7 @@ pub fn catalog_recipes(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings
     if !open {
         if let Some(spec) = active_extended {
             egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 0, bottom: 4 }).show(ui, |ui| {
-                catalog_row(app, ui, d, spec, "irMixActive", true);
+                mix_row(app, ui, d, spec, "irMixActive", true);
             });
         }
         return;
@@ -150,14 +165,14 @@ pub fn catalog_recipes(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings
         if selected == "all" {
             for (key, label) in &FAMILIES[1..] {
                 let group: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && s.family == *key).collect();
-                render_group(app, ui, d, active_id, Some(label), &group);
+                render_group(app, ui, d, active_id, Some(label), "irMix", &group);
             }
             let other: Vec<&HubIrMixSpec> =
                 HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && !FAMILIES[1..].iter().any(|(k, _)| *k == s.family)).collect();
-            render_group(app, ui, d, active_id, Some("Other"), &other);
+            render_group(app, ui, d, active_id, Some("Other"), "irMix", &other);
         } else {
             let filtered: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && s.family == selected).collect();
-            render_group(app, ui, d, active_id, None, &filtered);
+            render_group(app, ui, d, active_id, None, "irMix", &filtered);
         }
     });
 }

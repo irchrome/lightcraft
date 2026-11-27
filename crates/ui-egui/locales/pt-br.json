@@ -2344,5 +2344,16 @@
   "Swap Variants": "Variantes de troca",
   "Creative": "Criativo",
   "Fitted Looks": "Estilos ajustados",
-  "Other": "Outro"
+  "Other": "Outro",
+  "IR-FALSE-COLOR": "IR-FALSE-COLOR",
+  "IR-MONO": "IR-MONO",
+  "AEROCHROME": "AEROCHROME",
+  "False-Color Mixes": "Misturas em falsa cor",
+  "Tone & Contrast": "Tom e contraste",
+  "Chrome Profiles": "Perfis Chrome",
+  "No Chrome camera profiles for this camera yet.": "Ainda não há perfis Chrome para esta câmera.",
+  "Foliage & Sky HSL": "HSL de folhagem e céu",
+  "Primary Calibration": "Calibração dos primários",
+  "White Balance Selector (W) — pick foliage or grey after selecting an IR DCP": "Seletor de equilíbrio de branco (W) — escolha folhagem ou cinza após o DCP IR",
+  "Channel Mixer Neutral — forces picked spot to exact white": "Neutro do mixer de canais — força o ponto escolhido para branco exato"
 }

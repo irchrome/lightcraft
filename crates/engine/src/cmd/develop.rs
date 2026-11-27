@@ -895,8 +895,12 @@ pub fn specs() -> Vec<CommandSpec> {
             }
             crate::ir_profiles::refuse_unfit(s, "develop.profile", &id, active(s, "develop.profile")?)?;
             edit(s, "develop.profile", "Profile", |d| {
+                let changed = d.profile.id != id;
                 d.profile.id = id.clone();
                 d.profile.amount = f64_or(p, "amount", d.profile.amount).clamp(0.0, 200.0);
+                if changed {
+                    crate::cmd::ir::reset_swap_on_profile_change(d);
+                }
                 Ok(())
             })?;
             s.note_profile_used(&id);
