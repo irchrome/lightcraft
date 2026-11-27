@@ -19,14 +19,23 @@ pub(crate) fn decode(bytes: &[u8], mode: Mode) -> Result<RawImage> {
     let format = crate::probe(bytes);
     // the white balance of these two is measured from the samples, so the probe decodes them too
     let estimate_wb = matches!(format, Some(RawFormat::Erf | RawFormat::Mef));
-    let mut img = if mode == Mode::Full || estimate_wb {
-        let raw = craft_raw::decode(bytes)?;
-        let metadata = metadata(bytes, raw.format, &raw.camera, raw.info().developed_size());
-        image(raw, metadata)
+    let mut img = match if mode == Mode::Full || estimate_wb {
+        craft_raw::decode(bytes).map(|raw| {
+            let metadata = metadata(bytes, raw.format, &raw.camera, raw.info().developed_size());
+            image(raw, metadata)
+        })
     } else {
-        let info = craft_raw::probe_info(bytes)?;
-        let metadata = metadata(bytes, info.format, &info.camera, info.developed_size());
-        header_image(info, metadata)
+        craft_raw::probe_info(bytes).map(|info| {
+            let metadata = metadata(bytes, info.format, &info.camera, info.developed_size());
+            header_image(info, metadata)
+        })
+    } {
+        Ok(img) => img,
+        Err(e @ craft_raw::RawError::Unsupported(_)) => match crate::ir_raw::fallback_decode(bytes, format, mode) {
+            Some(res) => res?,
+            None => return Err(e),
+        },
+        Err(e) => return Err(e),
     };
     if estimate_wb && img.wb_multipliers.is_none() {
         img.wb_multipliers = estimated_wb(bytes, &img);
@@ -62,6 +71,17 @@ fn finish(img: &mut RawImage) {
     if matches!(img.format, RawFormat::Nef | RawFormat::Nrw) && img.color.kelvin_presets.is_none() {
         img.color.kelvin_presets = img.metadata.model.as_deref().and_then(|model| crate::kelvin_builtin::find(img.metadata.make.as_deref(), model));
     }
+}
+
+pub(crate) fn exif_metadata(bytes: &[u8], size: (usize, usize)) -> Metadata {
+    let mut m = Tiff::parse_with(bytes, &craft_tiff::ParseOptions { max_ifds: 256, ..Default::default() })
+        .ok()
+        .as_ref()
+        .map(lightcraft_meta::from_tiff)
+        .unwrap_or_default();
+    m.width = Some(size.0 as u32);
+    m.height = Some(size.1 as u32);
+    m
 }
 
 /// The file's Exif as [`Metadata`], with `size` (the developed size) as its width and height. A CRW has no Exif:

@@ -39,6 +39,8 @@ pub mod dngwrite;
 pub mod gaintable;
 pub mod highlight;
 mod hotpixel;
+mod ir_olympus12;
+mod ir_raw;
 pub mod kelvin_builtin;
 pub mod kelvin_presets;
 pub use craft_raw::lens_metadata;
@@ -301,7 +303,7 @@ impl RawImage {
         self.check(true)
     }
 
-    fn check(&self, samples: bool) -> Result<()> {
+    pub(crate) fn check(&self, samples: bool) -> Result<()> {
         if self.width == 0 || self.height == 0 || !(1..=4).contains(&self.cpp) {
             return Err(RawError::Corrupt("bad dimensions".into()));
         }

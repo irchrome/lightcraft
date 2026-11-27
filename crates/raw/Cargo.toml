@@ -24,6 +24,13 @@ thiserror = { workspace = true }
 rayon = { workspace = true }
 miniz_oxide = { workspace = true }
 craft-image-codecs = { workspace = true }
+# IR fork: Nikon HE NEF sensor data through a local LibRaw build
+lightcraft-nikon-he = { workspace = true, optional = true }
+
+[features]
+default = []
+## IR fork: decode Nikon High Efficiency NEFs (HE / HE★) through a local LibRaw build (LGPL / CDDL, not in this repository).
+nikon-he = ["dep:lightcraft-nikon-he"]
 
 [dev-dependencies]
 # tests record why they skip (`cargo xtask ci` lists the skips)
