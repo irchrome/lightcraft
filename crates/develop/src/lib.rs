@@ -7,11 +7,13 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod controls;
+pub mod ir_mix;
 pub mod presets;
 pub mod segmask;
 pub mod settings;
 
 pub use controls::{CONTROLS, ControlSpec, Section, Track};
+pub use ir_mix::IrMixState;
 pub use presets::{Preset, SettingsGroup, apply_partial, extract_groups};
 pub use segmask::{SegMask, with_grid_interner};
 pub use settings::*;
@@ -39,14 +41,19 @@ impl DevelopSettings {
         serde_json::from_value(v.clone())
     }
 
-    /// [`Self::to_json`] with Remove Hot Pixels (`detail.nr_outliers`) stated even when off, for JSON that is copied,
-    /// merged, scaled or compared key by key (copy / paste, presets, Auto Sync). The stored JSON leaves it out when
-    /// off, so settings saved before it keep their hash; a merge needs the `false`, or copying Detail would not turn
-    /// the box off and a preset applied at an amount would not find its base value.
+    /// [`Self::to_json`] with the settings it leaves out at their defaults stated, for JSON that is copied, merged,
+    /// scaled or compared key by key (copy / paste, presets, Auto Sync): Remove Hot Pixels (`detail.nr_outliers`)
+    /// when off, and the channel mixer when it is the identity. The stored JSON leaves them out, so settings saved
+    /// before them keep their hash; a merge needs them, or copying Detail would not turn the box off, a partial
+    /// `channel_mixer` would zero the coefficients it doesn't name, a mix returning to the identity would not sync,
+    /// and a preset applied at an amount would not find its base value (issue #2158).
     pub fn to_json_for_merge(&self) -> Value {
         let mut v = self.to_json();
         if let Some(detail) = v.get_mut("detail").and_then(Value::as_object_mut) {
             detail.insert("nr_outliers".into(), Value::Bool(self.detail.nr_outliers));
+        }
+        if let (Some(o), Ok(m)) = (v.as_object_mut(), serde_json::to_value(self.channel_mixer)) {
+            o.entry("channel_mixer").or_insert(m);
         }
         v
     }
@@ -62,9 +69,11 @@ impl DevelopSettings {
     /// Merge a partial JSON object into these settings (fields not mentioned are kept). A white balance that
     /// names no [`WbScale`] keeps the meaning it always had (`Legacy`), whatever scale these settings were on: a
     /// partial from before the scale existed, or one that never said, must not become Kelvin by landing on
-    /// Kelvin settings. Out-of-range values are brought back into range ([`DevelopSettings::keep_in_range`]).
+    /// Kelvin settings. The base states what stored JSON leaves out ([`Self::to_json_for_merge`]), so a partial
+    /// `channel_mixer` names single coefficients, not zero-filled rows. Out-of-range values are brought back
+    /// into range ([`DevelopSettings::keep_in_range`]).
     pub fn merged(&self, partial: &Value) -> Result<DevelopSettings, serde_json::Error> {
-        let mut v = self.to_json();
+        let mut v = self.to_json_for_merge();
         presets::deep_merge(&mut v, partial);
         let mut out = DevelopSettings::from_json(&v)?;
         if let Some(wb) = partial.get("wb").and_then(Value::as_object)
@@ -196,6 +205,7 @@ impl DevelopSettings {
             Section::Profile => {
                 self.profile = Profile::default();
             }
+            Section::ChannelMixer => self.ir_mix = None,
             _ => {}
         }
     }
@@ -351,6 +361,34 @@ mod tests {
         assert_eq!(h.peak(), (Hdr::DEFAULT_MAX_EV as f32).exp2());
         h.max_ev = -3.0;
         assert_eq!(h.peak(), 1.0);
+    }
+
+    /// Issue #2158: an untouched channel mixer adds nothing to the settings (so every saved edit and cached preview
+    /// keeps its JSON and hash), a touched one round-trips, and the section resets to the identity.
+    #[test]
+    fn channel_mixer_is_invisible_until_used() {
+        let s = DevelopSettings::default();
+        assert!(s.to_json().get("channel_mixer").is_none());
+        let mut m = s.clone();
+        assert!(controls::set(&mut m, "channelMixer.red.blue", 100.0));
+        assert!(controls::set(&mut m, "channelMixer.red.red", 0.0));
+        assert_eq!(controls::get(&m, "channelMixer.red.blue"), Some(100.0));
+        assert_eq!(m.to_json()["channel_mixer"]["red"], json!({"red": 0.0, "green": 0.0, "blue": 100.0}));
+        assert_eq!(DevelopSettings::from_json(&m.to_json()).unwrap(), m);
+        assert_ne!(m.hash64(), s.hash64());
+        assert!(!m.is_unedited());
+        // out of range clamps through the control spec
+        assert!(controls::set(&mut m, "channelMixer.red.blue", 500.0));
+        assert_eq!(m.channel_mixer.red.blue, 200.0);
+        assert!(controls::set(&mut m, "channelMixer.red.blue", -500.0));
+        assert_eq!(m.channel_mixer.red.blue, -200.0);
+        // merging a single coefficient leaves the diagonal intact
+        let one = s.merged(&json!({"channel_mixer": {"red": {"blue": 50.0}}})).unwrap();
+        assert_eq!((one.channel_mixer.red.red, one.channel_mixer.red.blue), (100.0, 50.0));
+        // resetting the section returns to the identity and omits the key again
+        m.reset_section(Section::ChannelMixer);
+        assert!(m.channel_mixer.is_identity());
+        assert!(m.to_json().get("channel_mixer").is_none());
     }
 
     #[test]

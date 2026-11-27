@@ -83,6 +83,9 @@ const FIELDS: &[(&str, usize)] = &[
     ("GRAIN_SEED", 1),
     ("GRAIN_AFF", 6),
     ("REFINE_SAT", 1),
+    // IR fork: soft gamut compression for infrared edits (`lightcraft_pipeline::ir_gamut`): on, curve scale
+    ("IR_GAMUT", 1),
+    ("IR_GAMUT_S", 1),
     ("CALIB", 1),
     ("CALIB_M", 9),
     ("SHADOW_TINT", 1),
@@ -320,6 +323,10 @@ pub fn finish_block(fp: &FinishParams, masks: &[[f32; MASK_TERMS]], present: &Pr
                 VignetteStyle::ColorPriority => 0,
             },
         );
+    }
+    if fp.ir_gamut {
+        p.b("IR_GAMUT", true); // IR fork
+        p.f("IR_GAMUT_S", lightcraft_pipeline::ir_gamut::scale());
     }
     if let Some(m) = &fp.calib {
         p.b("CALIB", true);

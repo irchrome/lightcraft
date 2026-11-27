@@ -247,6 +247,28 @@ fn color_ops(rgb: vec3<f32>, local_sat: f32, local_hue: f32) -> vec3<f32> {
     return oklab_inv(lab);
 }
 
+// IR fork: `ir_gamut::compress` (ACES Reference Gamut Compression towards the largest channel);
+// the constants are `ir_gamut::THRESHOLD`, `LIMIT`, `POWER` (a parity test reads them from here).
+const IR_THRESHOLD: f32 = 0.7;
+const IR_POWER: f32 = 1.2;
+fn ir_compress(c: vec3<f32>) -> vec3<f32> {
+    let ach = max(c.x, max(c.y, c.z));
+    if (!(ach > 0.0)) {
+        return c;
+    }
+    let s = pf(F_IR_GAMUT_S);
+    var out = c;
+    for (var k = 0u; k < 3u; k++) {
+        let d = (ach - c[k]) / ach;
+        if (d >= IR_THRESHOLD) {
+            let n = (d - IR_THRESHOLD) / s;
+            let cd = IR_THRESHOLD + s * n / pow(1.0 + pow(n, IR_POWER), 1.0 / IR_POWER);
+            out[k] = ach - cd * ach;
+        }
+    }
+    return out;
+}
+
 // `colorops::calibrate`: primaries matrix, then the shadows tint (luminance kept).
 fn calibrate(c0: vec3<f32>) -> vec3<f32> {
     var c = c0;
@@ -256,7 +278,11 @@ fn calibrate(c0: vec3<f32>) -> vec3<f32> {
             vec3<f32>(pf(F_CALIB_M + 3u), pf(F_CALIB_M + 4u), pf(F_CALIB_M + 5u)),
             vec3<f32>(pf(F_CALIB_M + 6u), pf(F_CALIB_M + 7u), pf(F_CALIB_M + 8u)),
         );
-        c = max(mul3(m, c), vec3<f32>(0.0));
+        var mixed = mul3(m, c);
+        if (pu(F_IR_GAMUT) != 0u) {
+            mixed = ir_compress(mixed); // IR fork
+        }
+        c = max(mixed, vec3<f32>(0.0));
     }
     let st = pf(F_SHADOW_TINT);
     if (st != 0.0) {
@@ -725,6 +751,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         r = mul3(mat_at(F_PROOF_OUT), gamut_apply(q0, vec3<f32>(pf(F_PROOF_Y), pf(F_PROOF_Y + 1u), pf(F_PROOF_Y + 2u)), tq, peak));
     } else {
         r = mul3(mat_at(F_OUT_M), d);
+    }
+    if (pu(F_IR_GAMUT) != 0u) {
+        r = ir_compress(r); // IR fork: soft, before the hard map below
     }
     let oy = vec3<f32>(pf(F_OUT_Y), pf(F_OUT_Y + 1u), pf(F_OUT_Y + 2u));
     let tg = gamut_scale(r, oy, peak);
