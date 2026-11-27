@@ -91,9 +91,9 @@ fn app_id() -> &'static str {
 /// gets the version with Apple's transparent margin so it sits right among the other Dock icons.
 fn app_icon() -> egui::IconData {
     #[cfg(target_os = "macos")]
-    let png: &[u8] = include_bytes!("../../../assets/app-icon/lightcraft-macos-512.png");
+    let png: &[u8] = include_bytes!("../../../assets/app-icon/lightcraft-ir-macos-512.png");
     #[cfg(not(target_os = "macos"))]
-    let png: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.lightcraft.png");
+    let png: &[u8] = include_bytes!("../../../assets/app-icon/lightcraft-ir-256.png");
     eframe::icon_data::from_png_bytes(png).unwrap_or_default()
 }
 

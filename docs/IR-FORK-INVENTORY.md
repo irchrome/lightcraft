@@ -7,7 +7,7 @@ Detailed technical inventory of the 9 fork features and what `irchrome/lightcraf
 - `tools/git-hooks/` (pre-commit refuses `.dcp`, `.cube`, raw files, `ir-private/`), `tools/sync-upstream.sh`, `tools/install-macos-app.sh`
 
 ## 2. Compressed 12-bit Olympus ORF Decoder (PR #360)
-- **Files:** `crates/raw/src/vendor/olympus12.rs`, hook in `crates/raw/src/vendor/orf.rs`.
+- **Files:** `crates/raw/src/ir_olympus12.rs` and `crates/raw/src/ir_raw.rs`, hooked into `crates/raw/src/convert.rs` when `craft_raw` reports `RawError::Unsupported(_)`.
 - **Status:** provenance disputed upstream (upstream withdrew its own ORF decoder in PR #3916 pending provenance review; objection to PR #360 unresolved). Kept here by owner's decision; **never offer upstream**.
 
 ## 3. RGB Channel Mixer / Neutral Picker / Red-Blue Swap (PR #3579)
@@ -34,17 +34,17 @@ Detailed technical inventory of the 9 fork features and what `irchrome/lightcraf
 - **Upstream files touched:** 2 lines in `crates/engine/src/lib.rs` (`mod ir_lightroom_meta;`, `pub mod ir_profiles;` + `keep_own_camera_profile` in `Session::develop_op`), 1 in `crates/engine/src/cmd/develop.rs` (`refuse_unfit`), 1 in `crates/engine/src/presets.rs` (`imported_profiles_for` / `append_dcp_groups`), 6 in `crates/engine/src/lightroom_catalog.rs`, 4 in `crates/engine/src/cmd/recheck.rs`, 3 in `crates/engine/src/cmd/missing.rs`, 2 in `crates/engine/src/cmd/convert.rs`, 3 in `crates/ui-egui/src/menus/run.rs` (`find_missing_done`), 2 in `crates/ui-egui/src/panels/profiles.rs`, 2 in `crates/ui-egui/src/panels/edit/sliders.rs`, fixture helper in `crates/engine/src/tests/dcp.rs`.
 
 ## 6. Nikon High Efficiency NEF (HE / HE★) via Local LibRaw
-- **Behavior:** off by default (`--features lightcraft/nikon-he,lightcraft-cli/nikon-he`). C shim over LibRaw public API (`libraw_open_buffer` + `libraw_unpack`, sensor samples only; levels/WB/colour/crop stay in LightCraft NEF reader).
+- **Behavior:** off by default (`--features lightcraft/nikon-he,lightcraft-cli/nikon-he`). C shim over LibRaw public API (`libraw_open_buffer` + `libraw_unpack`, sensor samples only; levels/WB/colour/crop read cleanly via `craft_tiff` / MakerNote in `ir_raw.rs`).
 - **Fork-owned crate:** `crates/nikon-he`.
-- **Upstream files touched:** 1 `cfg` branch in `crates/raw/src/vendor/nef.rs` `compressed()`, feature `nikon-he` in `crates/raw`, `apps/lightcraft`, `apps/lightcraft-cli`, 1 row in `xtask/src/layers.rs`, 1 entry in `xtask/src/roots.rs`, 1 filter in `xtask/src/wasm.rs`.
+- **Upstream files touched:** `crates/raw/src/convert.rs` (`ir_raw::fallback_decode` when `craft_raw` reports `Unsupported`), feature `nikon-he` in `Cargo.toml`, `crates/raw`, `apps/lightcraft`, `apps/lightcraft-cli`, 1 row in `xtask/src/layers.rs`, 1 entry in `xtask/src/roots.rs`, 1 filter in `xtask/src/wasm.rs`.
 - **Local dependency (never committed):** LGPL-2.1/CDDL-1.0 LibRaw snapshot 202611+ built at `~/Documents/_vendor/LibRaw` (`make -f Makefile.dist lib/libraw.a`) or via `LIBRAW_DIR`. Verified bit-exact against Adobe DNG Converter (`crates/raw/tests/nikon_he.rs`, sample `~/Documents/_IR-raw-corpus/Zf/he-sample.nef`, DNG via `LC_NIKON_HE_DNG`). After building with feature, run `library.recheckPreviewOnly all=true` once.
 
 ## 7. Soft Gamut Compression for IR Edits (`ir_gamut`)
 - **Behavior (owner decision 2026-11-13, IR photos only):** ACES Reference Gamut Compression (threshold 0.7, limit 2.2, power 1.2) runs when photo has user DCP (`dcp:` id) or non-neutral channel mixer, before mixer zero-clamp and output gamut map. Prevents flat yellow/cyan fills in foliage-balanced IR skies. Ordinary photos unaffected.
 - **Files:** `crates/pipeline/src/ir_gamut.rs`; GPU twin `ir_compress` in `crates/gpu/src/wgsl/finish.wgsl`, `IR_GAMUT`/`IR_GAMUT_S` in `crates/gpu/src/params.rs`, `FinishParams::ir_gamut`; CPU = GPU within 1 code value (`equivalence.rs`). Does not bump `RENDER_CACHE_VERSION`: rebuild IR previews with `library.buildPreviews ids=[…] force=true`.
 
-## 8. Fork Branding & Disconnected Upstream Updater
-- **Files:** fork-owned `crates/ui-egui/src/ir_fork.rs`; touched `crates/ui-egui/src/dialogs.rs` (`about_body`), `crates/ui-egui/src/lib.rs` (`mod` + `UPDATE_APP` → `irchrome/lightcraft`), `apps/lightcraft/src/main.rs` (`set_startup_update_check(false)`), keys at end of `crates/ui-egui/locales/*.json`. Update feature sentence in `ir_fork.rs` when fork feature set changes.
+## 8. Fork Branding, IR Mantis App Icon & Disconnected Upstream Updater
+- **Files:** fork-owned `crates/ui-egui/src/ir_fork.rs`, `assets/app-icon/lightcraft-ir*`; touched `crates/ui-egui/src/dialogs.rs` (`about_body`), `crates/ui-egui/src/lib.rs` (`mod` + `UPDATE_APP` → `irchrome/lightcraft`), `apps/lightcraft/src/main.rs` (`set_startup_update_check(false)` + `app_icon()`), `tools/install-macos-app.sh` (`lightcraft-ir.icns`), `assets/ATTRIBUTION.md`, keys at end of `crates/ui-egui/locales/*.json`. Update feature sentence in `ir_fork.rs` when fork feature set changes.
 
 ## 9. Dedicated Infrared Tab in `Tools` (`ir_tab`) & `Edit` IR Sections (`ir_edit`)
 - **Behavior:** `[ Edit | Infrared ]` segmented tab bar in the `Tools` panel (`RightPanel::Edit` + `UiState::ir_tab`, 0 lines in `docking.rs` and `detail.rs`), plus `Icon::Sun` (`panel.infrared`, `Shift+I`) on the right tool strip. Groups camera DCP quick list with live `HoverPreview` + `Amount`, WB (`Temp`/`Tint`, `W` picker) + compact `Exposure`/`Vibrance`/`Saturation`, and Infrared Channel Mixer (neutral picker, `Swap Red and Blue (sRGB)`, `More IR mixes`, `IR Mix Catalog` with family filters and live `HoverPreview`, Reset, 3×3 sliders). Inside `Edit` (`panels/edit.rs`), `ir_edit::sections` appends three dedicated collapsible sections: `IR-FALSE-COLOR`, `IR-MONO`, and `AEROCHROME` (Chrome/Aerochrome camera DCP quick list, WB/neutral pickers, Foliage & Sky HSL, Primary Calibration).

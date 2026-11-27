@@ -69,7 +69,7 @@ trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Licenses"
 
 cp "$BIN" "$APP/Contents/MacOS/LightCraft IR"
-cp "$ROOT/assets/app-icon/lightcraft.icns" "$APP/Contents/Resources/LightCraft.icns"
+cp "$ROOT/assets/app-icon/lightcraft-ir.icns" "$APP/Contents/Resources/LightCraft.icns"
 
 sed \
   -e "s|<string>LightCraft</string>|<string>LightCraft IR</string>|g" \

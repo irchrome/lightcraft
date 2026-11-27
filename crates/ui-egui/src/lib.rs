@@ -10,7 +10,7 @@
 /// `storytold/lightcraft`) so a manual update check can never overwrite the fork with upstream.
 #[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
-    icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.lightcraft.png")),
+    icon_png: Some(include_bytes!("../../../assets/app-icon/lightcraft-ir-256.png")),
     accent: Some([0xf2, 0xa5, 0x16]),
     ..craft_update::app::App::new("lightcraft-ir", "LightCraft IR", "Infrared photography fork of LightCraft", "irchrome/lightcraft")
 };

@@ -5,7 +5,7 @@ An infrared photography fork of [storytold/lightcraft](https://github.com/storyt
 **Website:** [https://irchrome.art](https://irchrome.art)  
 **Upstream project:** [https://github.com/storytold/lightcraft](https://github.com/storytold/lightcraft)
 
-LightCraft IR adds **native infrared (IR) raw processing** to LightCraft: dedicated IR workspaces (`Tools ▸ Infrared` and three IR sections inside `Edit`), 46 clean-room sRGB channel mixes, soft gamut compression for saturated IR skies, camera-bound DCP profiles with Lightroom camera recovery, and extended raw camera support, while staying rebase-friendly with upstream LightCraft.
+LightCraft IR is rebased on **upstream LightCraft `v0.21.1`** (`5973d956d`) and adds **native infrared (IR) raw processing**: dedicated IR workspaces (`Tools ▸ Infrared` and three IR sections inside `Edit`), 46 clean-room sRGB channel mixes, soft gamut compression for saturated IR skies, camera-bound DCP profiles with Lightroom camera recovery, an unmistakable **IR praying mantis** app icon (`assets/app-icon/lightcraft-ir.*`), and extended raw camera support, while staying rebase-friendly with upstream LightCraft.
 
 ## Download (macOS)
 
@@ -35,7 +35,7 @@ Prebuilt macOS (Apple Silicon, `aarch64`) binaries are available on the [Release
 - **Camera-bound DCP profiles & Lightroom metadata recovery:** imported `.dcp` camera profiles match the photo's camera model (`UniqueCameraModel`) and are never applied to JPEGs or mismatched bodies. Includes `.lrcat` camera/lens recovery and a 64 KiB EXIF header fallback so imported Lightroom catalogs match DCPs immediately.
 - **Compressed 12-bit Olympus ORF decoding:** ported from upstream PR #360 (kept in this fork with provenance notes; not part of upstream LightCraft).
 - **Optional Nikon High Efficiency NEF (`HE` / `HE★`) decoding:** opt-in local LibRaw shim (`crates/nikon-he`, `--features lightcraft/nikon-he`, off by default).
-- **Separate macOS app bundle (`LightCraft IR.app`, `art.irchrome.lightcraft-ir`):** installs cleanly alongside upstream LightCraft with upstream auto-update checks disabled.
+- **Separate macOS app bundle (`LightCraft IR.app`, `art.irchrome.lightcraft-ir`) with dedicated IR icon:** ships with a red/white false-color IR praying mantis icon (`lightcraft-ir.icns`) so it is visually distinct from upstream LightCraft in Finder and the Dock, with upstream auto-update checks disabled.
 
 ## Infrared Processing Guide (Clean Whites & Reliable Swaps)
 
@@ -66,6 +66,14 @@ Infrared raw files often look bright red out of the camera because standard dayl
 
 ### AI Masks (SAM 3) on Infrared Photos
 If you use `Object` / `Describe` AI masks (SAM 3, installed via `./tools/install-sam3.sh`), run them **after** applying your IR DCP, foliage WB, and channel swap so sky and foliage have natural semantic contrast.
+
+### Recommended Manual QA Test Library Structure
+When verifying all IR features across multiple camera bodies, organize a test library with albums matching the five IR workflows:
+1. **`01-IR-False-Color (550-742nm)`** — test `Edit ▸ IR-FALSE-COLOR`, `Infrared` tab, WB + `Channel Mixer Neutral` picker, `Swap Red and Blue (sRGB)`, and the 46-recipe mix catalog (`Swaps`, `Swap Variants`, `Fitted Looks`).
+2. **`02-IR-Mono (720-850nm)`** — test `Edit ▸ IR-MONO`, all 7 IR monochrome mixes, and tonal contrast (`Exposure`, `Contrast`, `Whites`, `Blacks`, `Clarity`, `Dehaze`).
+3. **`03-Aerochrome (IRChrome)`** — test `Edit ▸ AEROCHROME`, Chrome DCP profile switching, automatic swap/mixer reset on profile change (+ single-step Undo), `Foliage & Sky HSL`, and `Primary Calibration`.
+4. **`04-Multi-Camera-DCP-Match`** — verify `.dcp` profiles filter strictly by `UniqueCameraModel` across bodies (Nikon Z f / Z5 II / Fujifilm GFX 50S II / Olympus E-M1 II).
+5. **`05-Decoders (Nikon-HE + Olympus-ORF)`** — verify full raw decode (not preview-only) for compressed 12-bit Olympus `.ORF` (`olympus12`) and Nikon High Efficiency `.NEF` (`--features nikon-he`).
 
 ## Building from source (macOS)
 
