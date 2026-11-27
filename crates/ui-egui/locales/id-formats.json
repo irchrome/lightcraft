@@ -334,5 +334,6 @@
   "{n} already there": "{n} sudah ada",
   "Rule {n} of {m}: {what}. Move with the arrow keys": "Aturan {n} dari {m}: {what}. Pindahkan dengan tombol panah",
   "Group {n} of {m}: match {mode}, {count} inside. Move with the arrow keys": "Grup {n} dari {m}: cocokkan {mode}, isi: {count}. Pindahkan dengan tombol panah",
-  ", rating {} of 5": ", rating: {} dari 5"
+  ", rating {} of 5": ", rating: {} dari 5",
+  "Darker by {ev:.1} EV to fit the mix in range: raise Exposure if needed": "Lebih gelap {ev:.1} EV agar campuran muat dalam rentang: naikkan Eksposur bila perlu"
 }

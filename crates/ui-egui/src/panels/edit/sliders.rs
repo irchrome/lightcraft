@@ -24,14 +24,28 @@ pub fn apply_slider_out(
 }
 
 pub(crate) fn control(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, id: &str, enabled: bool) {
+    control_override(app, ui, d, id, enabled, None);
+}
+
+/// [`control`] with the slider's `label_override`: the Channel Mixer's rows say just "Red", "Green" or
+/// "Blue" under their output's sub-title, while the control's own label ("Red from Blue") stays for
+/// menus, history and scripting.
+pub(crate) fn control_override(
+    app: &mut LightcraftApp,
+    ui: &mut egui::Ui,
+    d: &DevelopSettings,
+    id: &str,
+    enabled: bool,
+    label_override: Option<&str>,
+) {
     let Some(spec) = controls::find(id) else { return };
     let v = controls::get(d, id).unwrap_or(spec.default);
-    let out = slider(ui, spec, v, enabled, None);
+    let out = slider(ui, spec, v, enabled, label_override);
     apply_slider_out(app, spec, out, |app, v| app.run("develop.set", json!({"control": id, "value": v})));
 }
 
 /// Relative temperature scale for rendered (non-raw) files: −100..100 ↔ Kelvin via mired shift.
-pub(super) const REL_TEMP: ControlSpec = ControlSpec {
+pub(crate) const REL_TEMP: ControlSpec = ControlSpec {
     id: "wb.tempRel",
     label: "Temp",
     section: Section::Color,
@@ -43,7 +57,7 @@ pub(super) const REL_TEMP: ControlSpec = ControlSpec {
     track: Track::Temp,
 };
 
-pub(super) const REL_TINT: ControlSpec = ControlSpec {
+pub(crate) const REL_TINT: ControlSpec = ControlSpec {
     id: "wb.tintRel",
     label: "Tint",
     section: Section::Color,
@@ -55,11 +69,11 @@ pub(super) const REL_TINT: ControlSpec = ControlSpec {
     track: Track::Tint,
 };
 
-pub(super) fn k_to_rel(k: f64) -> f64 {
+pub(crate) fn k_to_rel(k: f64) -> f64 {
     ((1e6 / 6500.0 - 1e6 / k) / 0.8).clamp(-100.0, 100.0)
 }
 
-pub(super) fn rel_to_k(r: f64) -> f64 {
+pub(crate) fn rel_to_k(r: f64) -> f64 {
     1e6 / (1e6 / 6500.0 - r * 0.8)
 }
 
@@ -67,7 +81,7 @@ pub(super) fn rel_to_k(r: f64) -> f64 {
 /// Browse…. Like the menu bar's menus, the dropdown and each submenu stay inside the window and
 /// scroll when their rows don't fit (issue #2059: a folder of many imported profiles ran past the
 /// window's bottom edge). `below` is the dropdown's bottom edge, which the menu hangs from.
-pub(super) fn profile_menu(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, below: f32) {
+pub(crate) fn profile_menu(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, below: f32) {
     crate::menu_level::level(ui, 1, Some(below), |ui| profile_menu_rows(app, ui, d, below));
 }
 
@@ -92,7 +106,8 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         ui.label(egui::RichText::new(crate::i18n::tr(s)).font(t.semibold(11.5)).color(t.text_dim));
     };
     for (title, key, ids) in [("Favorites", "fav", app.session.profile_favorites.clone()), ("Recent", "recent", app.session.profile_recent.clone())] {
-        let list: Vec<_> = ids.iter().filter_map(|id| app.session.profile_info(id).map(|(name, _)| (id.as_str(), name))).collect();
+        let list: Vec<_> =
+            ids.iter().filter_map(|id| app.session.profile_info_for(id, app.session.active()).map(|(name, _)| (id.as_str(), name))).collect();
         if list.is_empty() {
             continue;
         }
@@ -117,7 +132,7 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         }
     }
     // imported profile groups: LUT folders, then camera profiles
-    let imported = app.session.imported_profiles();
+    let imported = app.session.imported_profiles_for(app.session.active());
     let mut lut_groups: Vec<String> = Vec::new();
     for (_, _, g) in &imported {
         if !lut_groups.contains(g) {
@@ -166,6 +181,7 @@ fn profile_menu_rows(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSett
         let mut s = d.clone();
         s.profile.id = hovered_id.clone();
         s.profile.amount = 100.0;
+        super::super::ir_mix::reset_swap_preview(&mut s);
         app.hover_preview =
             Some(crate::HoverPreview { label: crate::i18n::tr_format!("Profile: {}", crate::i18n::profile_label(hovered_id, name)), settings: s });
     }

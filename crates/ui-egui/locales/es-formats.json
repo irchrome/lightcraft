@@ -335,5 +335,6 @@
   "Add “{keyword}” to {n} photo{}": "Añadir “{keyword}” a {n} foto{}",
   "Rule {n} of {m}: {what}. Move with the arrow keys": "Regla {n} de {m}: {what}. Mover con las teclas de flecha",
   "Group {n} of {m}: match {mode}, {count} inside. Move with the arrow keys": "Grupo {n} de {m}: coincidir con {mode}, {count} dentro. Mover con las teclas de flecha",
-  ", rating {} of 5": ", valoración: {} de 5"
+  ", rating {} of 5": ", valoración: {} de 5",
+  "Darker by {ev:.1} EV to fit the mix in range: raise Exposure if needed": "{ev:.1} EV más oscura para que la mezcla quepa en el rango: sube la Exposición si hace falta"
 }

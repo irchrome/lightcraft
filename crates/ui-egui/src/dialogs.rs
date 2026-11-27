@@ -2092,6 +2092,7 @@ fn about_body(app: &mut LightcraftApp, ui: &mut egui::Ui, t: &Tokens, dlg: &mut 
                 "Version {} — a clean-room, pure-Rust photo library and raw developer.",
                 crate::channel::display_version()
             ));
+            crate::ir_fork::about_ui(app, ui, t); // IR fork
             // Nightly only: the exact source commit, so a report can name the build (plain text, as the
             // catalogs carry no translated sentence for a build identity).
             if let Some(commit) = crate::channel::commit() {

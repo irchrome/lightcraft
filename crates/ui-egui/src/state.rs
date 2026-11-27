@@ -44,6 +44,9 @@ pub struct UiState {
     pub view: ViewMode,
     pub left_panel: bool,
     pub right: RightPanel,
+    /// Dedicated Infrared tab inside `RightPanel::Edit` (`panels/ir_tab.rs`, IR fork).
+    #[serde(default)]
+    pub ir_tab: bool,
     /// The right panel F8 (`view.rightPanel`) hid, which the next F8 shows again.
     #[serde(skip)]
     pub right_hidden: RightPanel,
@@ -287,7 +290,7 @@ pub struct UiState {
     /// the photo that applies to: not an edit, and forgotten on moving to another photo or quitting.
     #[serde(skip)]
     pub grading_hidden: Option<(lightcraft_catalog::PhotoId, [bool; 3])>,
-    /// Active on-canvas tool: "", "brush", "linear", "radial", "wbPicker", "straighten", "remove",
+    /// Active on-canvas tool: "", "brush", "linear", "radial", "wbPicker", "mixerPicker", "straighten", "remove",
     /// "lensBlurFocus" / "lensBlurBlur" (Lens Blur Brush Refinement, in the Edit panel).
     pub tool: String,
     /// Guided Upright: the selected guide (photo id + index) while the tool is open. A Delete /
@@ -550,6 +553,7 @@ impl Default for UiState {
             left_width: LEFT_WIDTH.default,
             right_width: RIGHT_WIDTH.default,
             right: RightPanel::Edit,
+            ir_tab: false,
             right_hidden: RightPanel::None,
             tool_return: None,
             toggle_return: Vec::new(),

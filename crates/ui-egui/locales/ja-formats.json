@@ -335,5 +335,6 @@
   "Add “{keyword}” to {n} photo{}": "写真{n}枚に「{keyword}」を追加{:.0}",
   "Rule {n} of {m}: {what}. Move with the arrow keys": "条件 {n}/{m}：{what}。矢印キーで移動",
   "Group {n} of {m}: match {mode}, {count} inside. Move with the arrow keys": "グループ {n}/{m}：一致条件 {mode}、中に {count} 件。矢印キーで移動",
-  ", rating {} of 5": "、評価: 5段階中{}"
+  ", rating {} of 5": "、評価: 5段階中{}",
+  "Darker by {ev:.1} EV to fit the mix in range: raise Exposure if needed": "ミックスを範囲内に収めるため {ev:.1} EV 暗くなりました：必要なら露出を上げてください"
 }

@@ -438,7 +438,7 @@ pub fn slider_named(ui: &mut Ui, spec: &ControlSpec, value: f64, enabled: bool, 
     let resp = ui.interact(track_rect.expand2(vec2(8.0, 2.0)), id, if enabled { Sense::click_and_drag() } else { Sense::hover() });
     let (wheel_armed, pointer_in_row) = update_wheel_arming(ui, id, &resp, row, enabled);
     // screen readers: a slider named after its control, with its value
-    let label_text = spoken.map_or_else(|| crate::i18n::tr(label_override.unwrap_or(spec.label)).to_string(), str::to_string);
+    let label_text = spoken.map_or_else(|| crate::i18n::tr(spec.label).to_string(), str::to_string);
     resp.widget_info(|| egui::WidgetInfo::slider(enabled, value, label_text.clone()));
     describe_slider(ui, &g, &resp);
     // the name: double-click it to reset, as the thumb (a disabled slider's name is only text)
@@ -1407,6 +1407,10 @@ pub mod text_field;
 #[cfg(test)]
 #[path = "widgets/tests_slider_reset.rs"]
 mod slider_reset_tests;
+
+#[cfg(test)]
+#[path = "widgets/tests_slider_name.rs"]
+mod slider_name_tests;
 
 fn focused_slider_key() -> egui::Id {
     egui::Id::unique("lightcraft-focused-slider")

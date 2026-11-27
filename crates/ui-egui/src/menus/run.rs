@@ -2,6 +2,12 @@ use super::files::{edit_in, open_log_folder, open_original_in, show_in_finder, s
 use super::ui_commands::{UI_COMMANDS, language_from_command};
 use super::{BeforeAfter, Dialog, LightcraftApp, PickRequest, Picked, RightPanel, Value, ViewMode, Zoom, json, thumb_size_view};
 
+/// A picker tool armed from the Edit panel that outlives panel switches (one click on the photo, then
+/// it ends): closing or switching a panel must not end it.
+fn picker_alive(tool: &str) -> bool {
+    matches!(tool, "wbPicker" | "mixerPicker")
+}
+
 fn panel(app: &mut LightcraftApp, ctx: &egui::Context, p: RightPanel, name: &str) {
     // toggled off: back to exactly what the right column showed before (in the same frame: no flash, no jump),
     // closed when it was closed (note 21)
@@ -18,7 +24,7 @@ fn panel(app: &mut LightcraftApp, ctx: &egui::Context, p: RightPanel, name: &str
             app.ui.view = ViewMode::Detail;
         }
     }
-    if !tool_restored && p != RightPanel::Masking && app.ui.tool != "wbPicker" {
+    if !tool_restored && p != RightPanel::Masking && !picker_alive(&app.ui.tool) {
         app.ui.tool.clear();
     }
     app.ui.note_right();
@@ -57,7 +63,7 @@ fn color_mixer_layout(app: &mut LightcraftApp, p: &Value) -> Result<Value, Strin
     // coming from another panel puts its tool down (Masking's colour picker would keep taking the photo's clicks),
     // as the panel switch does; the White Balance picker and the mixer's own tools stay
     let mixer_tool = matches!(app.ui.tool.as_str(), "pointColor" | "tat:hue" | "tat:sat" | "tat:lum");
-    if app.ui.right != RightPanel::Edit && app.ui.tool != "wbPicker" && !mixer_tool {
+    if app.ui.right != RightPanel::Edit && !picker_alive(&app.ui.tool) && !mixer_tool {
         app.ui.tool.clear();
     }
     crate::panels::edit::drop_hidden_mixer_tool(app);
@@ -338,7 +344,7 @@ fn ui_commands_1(app: &mut LightcraftApp, ctx: &egui::Context, id: &str, p: &Val
                 }
                 if k.is_empty() {
                     app.ui.right = RightPanel::Keywords;
-                    if app.ui.tool != "wbPicker" {
+                    if !picker_alive(&app.ui.tool) {
                         app.ui.tool.clear();
                     }
                     let _ = app.session.end_interaction();
@@ -716,7 +722,7 @@ fn ui_commands_4(app: &mut LightcraftApp, _ctx: &egui::Context, id: &str, p: &Va
                 // noted now, not at the frame's end: a command after it in the same frame (a batch of control
                 // requests) opens a tool on the hidden column, not on the panel F8 hid
                 app.ui.note_right();
-                if app.ui.tool != "wbPicker" {
+                if !picker_alive(&app.ui.tool) {
                     app.ui.tool.clear();
                 }
                 let _ = app.session.end_interaction();
@@ -1062,7 +1068,31 @@ fn ui_commands_7(app: &mut LightcraftApp, ctx: &egui::Context, id: &str, p: &Val
             Ok(json!({"filterBar": app.ui.filter_bar}))
         }
         "panel.edit" => {
-            panel(app, ctx, RightPanel::Edit, "Edit");
+            if app.ui.right == RightPanel::Edit && app.ui.ir_tab && crate::docking::exposed(app, crate::docking::Panel::Tools) {
+                app.ui.ir_tab = false;
+                app.toast(ctx, crate::i18n::tr_format!("{name} On", name = crate::i18n::tr("Edit")));
+            } else {
+                app.ui.ir_tab = false;
+                panel(app, ctx, RightPanel::Edit, "Edit");
+            }
+            Ok(Value::Null)
+        }
+        "panel.infrared" => {
+            if app.ui.right == RightPanel::Edit && app.ui.ir_tab && crate::docking::exposed(app, crate::docking::Panel::Tools) {
+                app.ui.right = RightPanel::None;
+                app.toast(ctx, crate::i18n::tr_format!("{name} Off", name = crate::i18n::tr("Infrared")));
+            } else {
+                app.ui.ir_tab = true;
+                app.ui.right = RightPanel::Edit;
+                app.toast(ctx, crate::i18n::tr_format!("{name} On", name = crate::i18n::tr("Infrared")));
+                if !matches!(app.ui.view, ViewMode::Detail) {
+                    app.ui.view = ViewMode::Detail;
+                }
+            }
+            if !picker_alive(&app.ui.tool) {
+                app.ui.tool.clear();
+            }
+            let _ = app.session.end_interaction();
             Ok(Value::Null)
         }
         "panel.profiles" => {
@@ -1176,8 +1206,9 @@ fn ui_commands_8(app: &mut LightcraftApp, _ctx: &egui::Context, id: &str, p: &Va
                 return Err(format!("{s}: no such Edit section"));
             }
             let sec = &s["section.".len()..];
-            if app.ui.right != RightPanel::Edit {
+            if app.ui.right != RightPanel::Edit || app.ui.ir_tab {
                 app.ui.right = RightPanel::Edit;
+                app.ui.ir_tab = false;
             }
             if solo == Some(true) {
                 app.ui.solo_section(sec);
@@ -1247,6 +1278,11 @@ fn ui_commands_8(app: &mut LightcraftApp, _ctx: &egui::Context, id: &str, p: &Va
                     app.ui.right = RightPanel::Edit;
                     app.ui.view = ViewMode::Detail;
                     app.ui.tool = "wbPicker".into();
+                }
+                "mixerPicker" => {
+                    app.ui.right = RightPanel::Edit;
+                    app.ui.view = ViewMode::Detail;
+                    app.ui.tool = "mixerPicker".into();
                 }
                 other => return Some(Err(format!("unknown tool `{other}`"))),
             }
@@ -1926,6 +1962,9 @@ fn find_missing_done(app: &mut LightcraftApp, ctx: &egui::Context, plan: Result<
             );
             app.ui.last_find_missing = Some(v.clone());
             app.ui.last_find_missing_result = Some(Ok(v));
+            if n > 0 {
+                app.ui.rechecked_library = None;
+            }
         }
         Err(e) => {
             app.toast(ctx, e.clone());

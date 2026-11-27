@@ -35,9 +35,10 @@ use histogram::soft_proofing;
 use lens_blur::lens_blur;
 use mixer::mixer;
 pub(crate) use mixer::{MIXER_ADJUST, MIXER_GROUPS, MIXER_TABS, drop_hidden_mixer_tool};
-use sliders::{REL_TEMP, REL_TINT, hdr_row, header_buttons, k_to_rel, profile_menu, quick_develop, rel_to_k, reset_tip, section};
+pub(crate) use sliders::{REL_TEMP, REL_TINT, k_to_rel, profile_menu, rel_to_k};
 pub use sliders::{apply_slider_out, sub_title};
-pub(crate) use sliders::{control, reload_preview_only};
+pub(crate) use sliders::{control, control_override, reload_preview_only};
+use sliders::{hdr_row, header_buttons, quick_develop, reset_tip, section};
 
 /// The camera photo `id` was taken with, maker and model ([`lightcraft_catalog::Meta::camera_name`]), on its own line
 /// above the Edit header (widget `edit:camera`). A label, so screen readers read it; a long name is cut short with …
@@ -55,8 +56,7 @@ fn camera_line(app: &LightcraftApp, ui: &mut egui::Ui, id: PhotoId, t: &Tokens) 
     });
 }
 
-pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
-    let t = Tokens::get(ui.ctx());
+pub(crate) fn prepared_develop(app: &LightcraftApp, id: PhotoId) -> (std::sync::Arc<DevelopSettings>, bool) {
     let d = app.session.develop_of(id).unwrap_or_default();
     // a raw shown from its embedded JPEG (preview only) gets the rendered-file white balance scale
     let raw = app.session.catalog.photo(id).is_some_and(|p| p.develops_raw() && !p.relative_wb());
@@ -75,6 +75,12 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         wb.temp = temp;
         wb.tint = tint;
     }
+    (d, raw)
+}
+
+pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
+    let t = Tokens::get(ui.ctx());
+    let (d, raw) = prepared_develop(app, id);
     let preview_only = app.session.catalog.photo(id).and_then(|p| p.preview_only.clone());
 
     if app.ui.soft_proof {
@@ -389,6 +395,45 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         lens_blur(app, ui, d);
         ui.add_space(8.0);
     });
+    // A mixer Lightroom hasn't got, mainly for infrared: swap red and blue, or pull down a channel
+    // white balance can't reach (issue #2158).
+    section(app, ui, &d, "channelMixer", "Channel Mixer", |app, ui, d| {
+        egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 2, bottom: 6 }).show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                let active = app.ui.tool == "mixerPicker";
+                if crate::widgets::icon_button(
+                    ui,
+                    "mixerPicker",
+                    Icon::Picker,
+                    vec2(28.0, 28.0),
+                    active,
+                    true,
+                    "Click a spot that should be neutral (for infrared: foliage)",
+                )
+                .clicked()
+                {
+                    if active {
+                        app.ui.tool.clear();
+                    } else if let Err(e) = app.run("tool.mixerPicker", json!({})) {
+                        app.toast(ui.ctx(), e);
+                    }
+                }
+                if crate::widgets::text_button(ui, "mixerSwapRB", "Swap Red and Blue", false).clicked()
+                    && let Err(e) = app.run("develop.mixerSwapRB", json!({}))
+                {
+                    app.toast(ui.ctx(), e);
+                }
+            });
+            super::ir_mix::buttons(app, ui);
+        });
+        for (title, k) in [("Red Output", "red"), ("Green Output", "green"), ("Blue Output", "blue")] {
+            sub_title(ui, title);
+            for (name, src) in [("Red", "red"), ("Green", "green"), ("Blue", "blue")] {
+                control_override(app, ui, d, &format!("channelMixer.{k}.{src}"), true, Some(name));
+            }
+        }
+        ui.add_space(8.0);
+    });
     // Lightroom Classic's Calibration panel (the cloud app hides it): last, like there.
     section(app, ui, &d, "calibration", "Calibration", |app, ui, d| {
         sub_title(ui, crate::i18n::tr("Shadows"));
@@ -400,6 +445,8 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
         }
         ui.add_space(8.0);
     });
+    // fork (infrared): dedicated IR-FALSE-COLOR / IR-MONO / AEROCHROME Edit sections
+    super::ir_edit::sections(app, ui, &d, id, raw);
     ui.add_space(40.0);
     // A pending numeric edit commits on blur before the explicit Reset takes precedence.
     if reset_clicked {

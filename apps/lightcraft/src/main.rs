@@ -600,7 +600,8 @@ fn main() -> eframe::Result {
                 let mut app = LightcraftApp::new(session, services(cc, app_log_file.as_deref()));
                 // Nightly is updated by the Launcher, never by the app's own release feed.
                 if !nightly {
-                    app.set_startup_update_check(true);
+                    // IR fork: never auto-check upstream updates at startup (would offer to overwrite the fork).
+                    app.set_startup_update_check(false);
                 }
                 if let Some(ui) = prefs {
                     app.ui = ui;

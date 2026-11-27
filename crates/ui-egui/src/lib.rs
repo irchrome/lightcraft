@@ -6,13 +6,13 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
-/// LightCraft as craft-update knows it, with its 128 px icon and accent colour: the update
-/// prompt shows both, and an AppImage's menu entry gets the icon.
+/// LightCraft IR as craft-update knows it: points to the IR fork repository (never upstream
+/// `storytold/lightcraft`) so a manual update check can never overwrite the fork with upstream.
 #[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.lightcraft.png")),
     accent: Some([0xf2, 0xa5, 0x16]),
-    ..craft_update::suite::LIGHTCRAFT
+    ..craft_update::app::App::new("lightcraft-ir", "LightCraft IR", "Infrared photography fork of LightCraft", "irchrome/lightcraft")
 };
 
 pub mod brush_live;
@@ -31,6 +31,7 @@ mod frame_rate;
 pub mod headless;
 pub mod i18n;
 pub mod icons;
+pub mod ir_fork; // IR fork
 pub mod lens_db;
 pub mod lightroom_import;
 pub mod links;
