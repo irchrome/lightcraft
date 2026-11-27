@@ -630,6 +630,7 @@ fn read_file(path: &Path, document: &Path, source: &Path, cancel: &AtomicBool, d
     }
     let mut history = group(optional_table("Adobe_libraryImageDevelopHistoryStep", &mut warnings)?);
     let mut snapshots = group(optional_table("Adobe_libraryImageDevelopSnapshot", &mut warnings)?);
+    let mut harvested = crate::ir_lightroom_meta::read_harvested(&mut |name| reader.optional_table(name, &mut warnings))?;
     let mut out = CatalogImport {
         source: source.to_string_lossy().into(),
         catalog_id: reader.catalog_id(),
@@ -671,6 +672,8 @@ fn read_file(path: &Path, document: &Path, source: &Path, cancel: &AtomicBool, d
             continue;
         }
         let (photo_path, original) = original_path(root_path, folder_path, name, document);
+        let mut image = image;
+        crate::ir_lightroom_meta::attach_to_image(&mut image, harvested.remove(&id));
         if let Original::Refused(why) = &original
             && !refused_roots.contains(&root_id)
         {
@@ -1346,7 +1349,9 @@ pub(crate) fn apply_prepared(s: &mut crate::Session, mut data: CatalogImport, co
                 // Edit Capture Time does)
                 let m = &duplicate.meta;
                 let meta = lightcraft_catalog::Meta {
+                    make: m.make.clone(),
                     camera: m.camera.clone(),
+                    lens_make: m.lens_make.clone(),
                     lens: m.lens.clone(),
                     focal_mm: m.focal_mm,
                     aperture: m.aperture,
@@ -1404,6 +1409,7 @@ pub(crate) fn apply_prepared(s: &mut crate::Session, mut data: CatalogImport, co
                 Err(e) => warnings.push(format!("image {} XMP: {e}", src.source_id)),
             }
         }
+        crate::ir_lightroom_meta::fill_photo_meta(&mut p, &src.image, &src.xmp);
         p.rating = number(&src.image, "rating").clamp(0, 5) as u8;
         p.flag = match number(&src.image, "pick") {
             1 => Flag::Pick,

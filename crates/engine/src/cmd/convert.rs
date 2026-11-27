@@ -343,6 +343,7 @@ pub(crate) fn reload_ops(
         let shutter_op = repair_legacy_shutter(&mut meta, &info.meta).then(|| Op::SetMeta { id: c.id, meta: Box::new(meta) });
         let theirs: Vec<Op> = content_op(c.id, c, info.clone())
             .into_iter()
+            .chain(fill_missing_meta(c.id, c, info))
             .chain(shutter_op)
             .chain(lens_ops(c.id, c, info))
             .chain(as_shot_wb_op(c.id, c, info))

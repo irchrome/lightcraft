@@ -23,6 +23,7 @@ mod face_recognize;
 pub mod filters;
 mod focus;
 pub mod geocode;
+mod ir;
 pub mod keywords;
 pub mod lens_refresh;
 pub mod library;
@@ -157,6 +158,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
         v.extend(previews::specs());
         v.extend(lut_profiles::specs());
         v.extend(dcp_profiles::specs());
+        v.extend(ir::specs());
         v.extend(mask_effects::specs());
         v.extend(cull::specs());
         v.extend(convert::specs());

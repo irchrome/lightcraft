@@ -30,6 +30,12 @@ fn swapping_profile(name: &str) -> DcpProfile {
     }
 }
 
+/// A tiny raw from the camera [`swapping_profile`] is made for (camera profiles fit only their own camera).
+fn test_camera_dng() -> Vec<u8> {
+    let camera = lightcraft_meta::Metadata { make: Some("LightCraft".into()), model: Some("Test Camera".into()), ..Default::default() };
+    crate::tests_xmp::synthetic_dng_with(None, camera)
+}
+
 fn mean_rgb(img: &lightcraft_raster::Rgb32f) -> [f32; 3] {
     let n = img.data.len().max(1) as f32;
     let s = img.data.iter().fold([0.0f32; 3], |a, p| [a[0] + p[0], a[1] + p[1], a[2] + p[2]]);
@@ -38,7 +44,7 @@ fn mean_rgb(img: &lightcraft_raster::Rgb32f) -> [f32; 3] {
 
 #[test]
 fn a_camera_profile_replaces_the_raw_colour_model_when_decoding() {
-    let dng = crate::tests_xmp::synthetic_dng_with(None, Default::default());
+    let dng = test_camera_dng();
     let (plain, plain_info) = crate::files::load_bytes(&dng, 64).unwrap();
     let p = swapping_profile("Swap");
     let (with, info) = crate::files::load_bytes_with(&dng, 64, Some(&p)).unwrap();
@@ -54,7 +60,7 @@ fn a_camera_profile_replaces_the_raw_colour_model_when_decoding() {
 fn a_profile_without_a_tone_curve_keeps_the_photos_contrast() {
     use lightcraft_raw::profile::ToneCurve;
     // a DNG with a tone curve of its own (our numbers: 18 % grey → 30 %)
-    let plain = crate::tests_xmp::synthetic_dng_with(None, Default::default());
+    let plain = test_camera_dng();
     let mut raw = lightcraft_raw::decode(&plain).unwrap();
     raw.color.profile.tone_curve = ToneCurve::from_tag(&[0.0, 0.0, 0.18, 0.3, 1.0, 1.0]);
     let dng = lightcraft_raw::write_dng(&raw, &Default::default()).unwrap();
@@ -76,7 +82,7 @@ fn import_choose_cache_persist_and_delete() {
     let (lib, files) = (dir.join("lib"), dir.join("files"));
     std::fs::create_dir_all(files.join("profiles")).unwrap();
     let raw = files.join("IMG_0001.dng");
-    std::fs::write(&raw, crate::tests_xmp::synthetic_dng_with(None, Default::default())).unwrap();
+    std::fs::write(&raw, test_camera_dng()).unwrap();
     std::fs::write(files.join("profiles").join("Swap.dcp"), write_dcp(&swapping_profile("Swap")).unwrap()).unwrap();
     std::fs::write(files.join("profiles").join("Broken.dcp"), b"IIRC\x08\0\0\0junk").unwrap();
     let id;
@@ -154,7 +160,7 @@ fn hover_previews_and_browser_thumbnails_decode_with_the_hovered_camera_profile(
     let (lib, files) = (dir.join("lib"), dir.join("files"));
     std::fs::create_dir_all(&files).unwrap();
     let raw = files.join("IMG_0002.dng");
-    std::fs::write(&raw, crate::tests_xmp::synthetic_dng_with(None, Default::default())).unwrap();
+    std::fs::write(&raw, test_camera_dng()).unwrap();
     let dcp_file = files.join("Swap.dcp");
     std::fs::write(&dcp_file, write_dcp(&swapping_profile("Swap")).unwrap()).unwrap();
     let mut s = Session::new().with_fs();
@@ -201,7 +207,7 @@ fn library_with_profile(dir: &std::path::Path) -> (Session, PhotoId, String) {
     let (lib, files) = (dir.join("lib"), dir.join("files"));
     std::fs::create_dir_all(files.join("a")).unwrap();
     let raw = files.join("IMG_0003.dng");
-    std::fs::write(&raw, crate::tests_xmp::synthetic_dng_with(None, Default::default())).unwrap();
+    std::fs::write(&raw, test_camera_dng()).unwrap();
     std::fs::write(files.join("a").join("Swap.dcp"), write_dcp(&swapping_profile("Swap")).unwrap()).unwrap();
     let mut s = Session::new().with_fs();
     s.open_library(&lib, false).unwrap();

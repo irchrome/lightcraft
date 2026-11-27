@@ -47,6 +47,8 @@ pub mod fonts;
 pub mod guard;
 pub mod import;
 mod import_move;
+mod ir_lightroom_meta;
+pub mod ir_profiles;
 pub mod lens_profiles;
 pub mod lensfun_download;
 pub mod library;
@@ -1155,7 +1157,9 @@ impl Session {
             return Vec::new();
         }
         let Some(old) = self.develop_of(id) else { return Vec::new() };
-        // (Remove Hot Pixels, omitted when off, is stated: switching it off is a change)
+        // (Remove Hot Pixels, omitted when off, and an identity channel mixer, omitted from stored
+        // JSON, are stated on both sides as `hdr` below: switching either back is a change the synced
+        // photos receive, not a key the delta silently drops)
         let mut old_json = old.to_json_for_merge();
         let mut new_json = new.to_json_for_merge();
         // False is omitted from stored profile JSON. Keep it explicit for this comparison so
@@ -1169,6 +1173,12 @@ impl Session {
         if let Some(o) = delta.as_object_mut() {
             for k in ["spots", "red_eye", "version", "process"] {
                 o.remove(k);
+            }
+            // The channel mixer is one matrix, so it goes over whole. The delta is leaf-wise: a pick or
+            // a swap on the active photo would send only the coefficients that changed there, and a
+            // photo whose mixer was different would keep its others, a matrix neither photo had.
+            if o.contains_key("channel_mixer") {
+                o.insert("channel_mixer".into(), new_json["channel_mixer"].clone());
             }
             if o.is_empty() {
                 return Vec::new();
@@ -1207,6 +1217,7 @@ impl Session {
     pub fn develop_op(&self, id: PhotoId, settings: DevelopSettings, label: &str) -> Option<Op> {
         self.catalog.photo(id)?;
         let mut settings = settings;
+        ir_profiles::keep_own_camera_profile(self, id, label, &mut settings);
         // old masks (on the corrected frame) go onto the photo, from the frame they were drawn on:
         // masks this edit kept, under the photo's settings before it (a geometry edit then moves
         // the photo, not them); masks it brought in (paste, sync, a preset, a history step, a

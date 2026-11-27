@@ -596,7 +596,7 @@ impl Session {
     pub fn profile_menu(&self) -> Value {
         let item =
             |p: &ProfileInfo| json!({"id": p.id, "name": p.name, "group": p.group, "favorite": self.profile_favorites.iter().any(|f| f == p.id)});
-        let imported = self.imported_profiles();
+        let imported = self.imported_profiles_for(self.active());
         let imported_item = |(id, name, group): &(String, String, String)| {
             let mut v = json!({"id": id, "name": name, "group": group, "favorite": self.profile_favorites.contains(id), "imported": true});
             if let Some(d) = self.dcp_profiles.iter().find(|d| &d.id == id) {
@@ -616,9 +616,7 @@ impl Session {
         lut_groups.dedup();
         // the camera profiles' group once, last (a LUT group of the same name joins it rather than showing twice)
         lut_groups.retain(|g| *g != crate::cmd::dcp_profiles::DCP_GROUP);
-        if imported.iter().any(|p| p.2 == crate::cmd::dcp_profiles::DCP_GROUP) {
-            lut_groups.push(crate::cmd::dcp_profiles::DCP_GROUP);
-        }
+        crate::ir_profiles::append_dcp_groups(&imported, &mut lut_groups);
         for g in lut_groups {
             let profiles: Vec<Value> = imported.iter().filter(|p| p.2 == g).map(imported_item).collect();
             groups.push(json!({"name": g, "profiles": profiles, "imported": true}));
