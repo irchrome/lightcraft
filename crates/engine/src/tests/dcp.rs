@@ -567,3 +567,80 @@ fn an_oversized_camera_profile_is_refused_while_it_is_read() {
     assert_eq!(r["failed"][0][1], json!("the camera profile is larger than 64 MiB"), "{r}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn dcp_look_tables_are_deferred_after_wb_so_wb_pick_and_swap_stay_neutral() {
+    use lightcraft_raw::profile::HsvTable;
+
+    let dir = temp_dir("ir-defer-look");
+    let lib = dir.join("lib");
+    let files = dir.join("files");
+    std::fs::create_dir_all(&files).unwrap();
+
+    // Warm/red raw DNG (as-shot daylight WB yields strongly red/warm tones in sRGB, like an IR shot)
+    let mut raw = lightcraft_raw::decode(&test_camera_dng()).unwrap();
+    let lightcraft_raw::RawData::U16(ref mut px) = raw.data else {
+        panic!("expected u16 synthetic dng");
+    };
+    let (w, h) = (raw.width, raw.height);
+    for y in 0..h {
+        for x in 0..w {
+            // Stay well below raw.white (16000) and above black (256) so nothing clips
+            let v = match (y & 1, x & 1) {
+                (0, 0) => 4256u16,
+                (0, 1) | (1, 0) => 2256u16,
+                _ => 1256u16,
+            };
+            px[y * w + x] = v;
+        }
+    }
+    raw.wb_multipliers = Some([1.0, 1.0, 1.0]);
+    let raw_path = files.join("warm.dng");
+    std::fs::write(&raw_path, lightcraft_raw::write_dng(&raw, &Default::default()).unwrap()).unwrap();
+
+    // DCP with non-linear HSV table that twists saturated hues strongly while preserving sat=0 neutrals
+    let mut prof = swapping_profile("Warm Twist");
+    prof.color.color_matrix = [Some(Mat3([[3.2406, -1.5372, -0.4986], [-0.9689, 1.8758, 0.0415], [0.0557, -0.2040, 1.0570]])), None];
+    prof.color.profile.hue_sat_map[0] = Some(HsvTable {
+        hue_divisions: 2,
+        sat_divisions: 2,
+        val_divisions: 1,
+        data: vec![[0.0, 1.0, 1.0], [45.0, 1.35, 1.0], [0.0, 1.0, 1.0], [-45.0, 1.35, 1.0]],
+        srgb_value: false,
+    });
+    let dcp_path = files.join("WarmTwist.dcp");
+    std::fs::write(&dcp_path, write_dcp(&prof).unwrap()).unwrap();
+
+    let mut s = Session::new().with_fs();
+    s.open_library(&lib, false).unwrap();
+    let id = PhotoId(s.execute("library.import", &json!({"paths": [raw_path.to_string_lossy()]})).unwrap()["imported"][0].as_u64().unwrap());
+    s.execute("library.select", &json!({"ids": [id.0]})).unwrap();
+    let dcp_id =
+        s.execute("profile.import", &json!({"paths": [dcp_path.to_string_lossy()]})).unwrap()["imported"][0]["id"].as_str().unwrap().to_string();
+
+    s.execute("develop.profile", &json!({"id": dcp_id})).unwrap();
+    s.execute("develop.wbPick", &json!({"x": 0.5, "y": 0.5})).unwrap();
+
+    let render_center = |s: &mut Session| {
+        let out = s.render_job(id, 64, 64, false, false).unwrap().run();
+        if let Some(loaded) = &out.loaded {
+            assert!(loaded.info.as_ref().is_some_and(|i| i.profile_look.is_some()), "DCP hue_sat_map must be deferred in SourceInfo::profile_look");
+            s.media.insert_source(id, out.level, loaded.clone());
+        }
+        let img = out.rendered.unwrap().image;
+        let p = img.get(img.width / 2, img.height / 2);
+        (p[0], p[1], p[2])
+    };
+
+    let (r0, g0, b0) = render_center(&mut s);
+    let spread0 = r0.max(g0).max(b0) - r0.min(g0).min(b0);
+    assert!(spread0 <= 4, "picked spot before swap must be neutral, got ({r0}, {g0}, {b0})");
+
+    s.execute("develop.mixerSwapRBsRGB", &json!({})).unwrap();
+    let (r1, g1, b1) = render_center(&mut s);
+    let spread1 = r1.max(g1).max(b1) - r1.min(g1).min(b1);
+    assert!(spread1 <= 4, "picked spot after Swap Red and Blue must stay neutral, got ({r1}, {g1}, {b1})");
+
+    s.close_library().unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -1,26 +1,15 @@
-//! Fork (irchrome/lightcraft, infrared): the Channel Mixer's infrared mixes, drawn under upstream's
-//! picker and swap, plus the extended clean-room catalog in the Infrared tab. One call from `edit.rs`
-//! keeps the fork's footprint in upstream files small.
+//! Fork (irchrome/lightcraft, infrared): the Channel Mixer's infrared mixes and shared helpers for `ir_edit.rs`.
+//! One call from `edit.rs` keeps the fork's footprint in upstream files small.
 
 use egui::{CornerRadius, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 use lightcraft_develop::DevelopSettings;
-use lightcraft_pipeline::ir_swap::catalog::{HUB_IR_MIXES, HubIrMixSpec};
+use lightcraft_pipeline::ir_swap::catalog::HubIrMixSpec;
 use lightcraft_pipeline::ir_swap::{IrMix, active_hub_ir_mix, choose_hub_ir_mix};
 use serde_json::json;
 
-use crate::icons::Icon;
 use crate::theme::Tokens;
-use crate::widgets::{flyout_row, one_line, register, text_button};
+use crate::widgets::{one_line, register, text_button};
 use crate::{HoverPreview, LightcraftApp};
-
-const FAMILIES: &[(&str, &str)] = &[
-    ("all", "All"),
-    ("swap", "Swaps"),
-    ("swap-variant", "Swap Variants"),
-    ("mono", "Monochrome"),
-    ("creative", "Creative"),
-    ("fit", "Fitted Looks"),
-];
 
 /// Run one fork mix command and say when the mix had to be scaled into ±200 % (the photo is darker).
 pub(crate) fn run(app: &mut LightcraftApp, ui: &Ui, command: &str, params: serde_json::Value) {
@@ -127,52 +116,4 @@ pub(crate) fn render_group(
         let cmd_id = spec.ir_mix_id.unwrap_or(spec.id);
         mix_row(app, ui, d, spec, &format!("{id_prefix}:{cmd_id}"), active);
     }
-}
-
-/// Collapsible catalog of extended clean-room recipes from `HUB_IR_MIXES` with family filters and hover preview.
-pub fn catalog_recipes(app: &mut LightcraftApp, ui: &mut Ui, d: &DevelopSettings) {
-    let open_id = egui::Id::unique("irCatalogMixesOpen");
-    let open: bool = ui.data(|m| m.get_temp(open_id)).unwrap_or(false);
-    let active_spec = active_hub_ir_mix(d);
-    let active_extended = active_spec.filter(|s| s.ir_mix_id.is_none());
-
-    if flyout_row(ui, "irCatalogMixes", "IR Mix Catalog", Icon::Presets, open).clicked() {
-        ui.data_mut(|m| m.insert_temp(open_id, !open));
-    }
-    if !open {
-        if let Some(spec) = active_extended {
-            egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 0, bottom: 4 }).show(ui, |ui| {
-                mix_row(app, ui, d, spec, "irMixActive", true);
-            });
-        }
-        return;
-    }
-
-    let fam_id = egui::Id::unique("irCatalogFamily");
-    let selected: &'static str = ui.data(|m| m.get_temp(fam_id)).unwrap_or("all");
-    let active_id = active_extended.map(|s| s.id);
-
-    egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 2, bottom: 6 }).show(ui, |ui| {
-        ui.horizontal_wrapped(|ui| {
-            for (key, label) in FAMILIES {
-                if text_button(ui, &format!("irCatalogFilter:{key}"), label, selected == *key).clicked() {
-                    ui.data_mut(|m| m.insert_temp(fam_id, *key));
-                }
-            }
-        });
-        ui.add_space(4.0);
-        ui.spacing_mut().item_spacing.y = 3.0;
-        if selected == "all" {
-            for (key, label) in &FAMILIES[1..] {
-                let group: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && s.family == *key).collect();
-                render_group(app, ui, d, active_id, Some(label), "irMix", &group);
-            }
-            let other: Vec<&HubIrMixSpec> =
-                HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && !FAMILIES[1..].iter().any(|(k, _)| *k == s.family)).collect();
-            render_group(app, ui, d, active_id, Some("Other"), "irMix", &other);
-        } else {
-            let filtered: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && s.family == selected).collect();
-            render_group(app, ui, d, active_id, None, "irMix", &filtered);
-        }
-    });
 }

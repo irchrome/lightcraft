@@ -28,8 +28,39 @@ pub fn white_balance(img: &mut Rgb32f, info: &SourceInfo, s: &DevelopSettings) {
     wb_gain(img, info, s, 1.0);
 }
 
+/// Deferred DCP `ProfileHueSatMap` / `ProfileLookTable` for `(info, s)` interpolated at the active WB.
+fn profile_tables_for(info: &SourceInfo, s: &DevelopSettings) -> Option<lightcraft_raw::profile::ProfileTables> {
+    let look = info.profile_look.as_deref()?;
+    let weight = match info.camera_color.as_deref() {
+        Some(cc) => {
+            let (t, tint) = effective_wb(info, s);
+            let xy = lightcraft_color::cct::temp_tint_to_xy(t, tint);
+            lightcraft_raw::color::illuminant_weight(&cc.tags, xy)
+        }
+        None => 0.5,
+    };
+    lightcraft_raw::profile::ProfileTables::new(look, weight)
+}
+
+/// White balance + deferred DCP profile tables for a single sample pixel (used by `mixerNeutralPick`).
+pub fn apply_white_balance_pixel(info: &SourceInfo, s: &DevelopSettings, sample: [f32; 3]) -> [f32; 3] {
+    let mut c = sample;
+    if let Some(m) = wb_matrix_for(info, s) {
+        c = [
+            m[0][0] * c[0] + m[0][1] * c[1] + m[0][2] * c[2],
+            m[1][0] * c[0] + m[1][1] * c[1] + m[1][2] * c[2],
+            m[2][0] * c[0] + m[2][1] * c[1] + m[2][2] * c[2],
+        ];
+    }
+    if let Some(tables) = profile_tables_for(info, s) {
+        c = tables.apply(c, 1.0);
+    }
+    c.map(|v| if v.is_finite() { v } else { 0.0 })
+}
+
 fn wb_gain(img: &mut Rgb32f, info: &SourceInfo, s: &DevelopSettings, gain: f32) {
     let m = wb_matrix_for(info, s);
+    let tables = profile_tables_for(info, s);
     let w = img.width;
     crate::for_rows(&mut img.data, w, |_, row| {
         for p in row.iter_mut() {
@@ -40,6 +71,9 @@ fn wb_gain(img: &mut Rgb32f, info: &SourceInfo, s: &DevelopSettings, gain: f32) 
                     m[1][0] * c[0] + m[1][1] * c[1] + m[1][2] * c[2],
                     m[2][0] * c[0] + m[2][1] * c[1] + m[2][2] * c[2],
                 ];
+            }
+            if let Some(tables) = &tables {
+                c = tables.apply(c, 1.0).map(|v| if v.is_finite() { v } else { 0.0 });
             }
             *p = [(c[0] * gain).max(0.0), (c[1] * gain).max(0.0), (c[2] * gain).max(0.0)];
         }

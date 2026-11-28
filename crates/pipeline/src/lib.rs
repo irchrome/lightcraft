@@ -101,6 +101,10 @@ pub struct SourceInfo {
     /// the developed pixels (Bradford, linear Rec.2020).
     pub camera_color: Option<Arc<CameraColor>>,
     pub camera_tone: Option<tone::CameraTone>,
+    /// Imported DCP profile hue/saturation map and look table applied after white balance
+    /// (DNG spec ch. 6) so extreme WB shifts (e.g. infrared RAWs) are not corrupted by tables
+    /// baked at as-shot WB.
+    pub profile_look: Option<Arc<lightcraft_raw::profile::ProfileLook>>,
     /// Segmentation mattes stored in the file (DNG semantic masks): AI masks use them.
     pub mattes: Option<Arc<masks::Mattes>>,
     /// The raw's own local tone mapping (DNG `ProfileGainTableMap`), rendered only when the
@@ -124,6 +128,7 @@ impl Default for SourceInfo {
             legacy_relative_wb: false,
             camera_color: None,
             camera_tone: None,
+            profile_look: None,
             mattes: None,
             local_tone: None,
             native_long: None,
@@ -576,6 +581,8 @@ pub fn plan<'a>(src: &Rgb32f, info: &SourceInfo, s: &'a DevelopSettings, req: &R
         format!("{:?}", s.optics),
         // and the local tone mapping
         local_tone::enabled(info, s),
+        // and any deferred DCP hue/sat/look tables
+        info.profile_look.as_ref().map(|p| Arc::as_ptr(p) as usize),
         src_long,
         // and the lens blur (after noise reduction, but a draft must not reuse planes without it)
         lens_blur::key(s),
@@ -665,7 +672,7 @@ pub fn colour_noise(src: &Rgb32f, info: &SourceInfo, p: &Plan<'_>) -> Option<nrc
 pub fn lin_needs_cpu(s: &DevelopSettings, info: &SourceInfo) -> bool {
     let o = &s.optics;
     let defringe = s.section_enabled("optics") && (o.defringe_purple_amount > 0.0 || o.defringe_green_amount > 0.0);
-    defringe || !s.spots.is_empty() || local_tone::enabled(info, s)
+    defringe || !s.spots.is_empty() || local_tone::enabled(info, s) || info.profile_look.is_some()
 }
 
 /// The white-balanced, defringed, retouched image (before noise reduction): the CPU part of the

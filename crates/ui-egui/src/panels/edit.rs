@@ -56,7 +56,7 @@ fn camera_line(app: &LightcraftApp, ui: &mut egui::Ui, id: PhotoId, t: &Tokens) 
     });
 }
 
-pub(crate) fn prepared_develop(app: &LightcraftApp, id: PhotoId) -> (std::sync::Arc<DevelopSettings>, bool) {
+fn prepared_develop(app: &LightcraftApp, id: PhotoId) -> (std::sync::Arc<DevelopSettings>, bool) {
     let d = app.session.develop_of(id).unwrap_or_default();
     // a raw shown from its embedded JPEG (preview only) gets the rendered-file white balance scale
     let raw = app.session.catalog.photo(id).is_some_and(|p| p.develops_raw() && !p.relative_wb());

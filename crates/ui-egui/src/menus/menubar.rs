@@ -289,7 +289,6 @@ const LAYOUT: &[(&str, &[&str])] = &[
         "Window",
         &[
             "panel.edit",
-            "panel.infrared",
             "panel.profiles",
             "panel.crop",
             "panel.remove",
@@ -494,8 +493,7 @@ pub fn checked(app: &LightcraftApp, id: &str) -> Option<bool> {
         "view.fullScreenPreview" => Some(u.fullscreen),
         "view.lightsOut" => Some(u.lights_out != crate::state::LightsOut::On),
         "view.enterFullScreen" => Some(app.window_is_fullscreen),
-        "panel.edit" => Some(u.right == RightPanel::Edit && !u.ir_tab),
-        "panel.infrared" => Some(u.right == RightPanel::Edit && u.ir_tab),
+        "panel.edit" => Some(u.right == RightPanel::Edit),
         "panel.profiles" => panel(RightPanel::Profiles),
         "panel.crop" => panel(RightPanel::Crop),
         "panel.remove" => panel(RightPanel::Remove),

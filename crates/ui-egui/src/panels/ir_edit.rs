@@ -470,7 +470,6 @@ mod tests {
         let mut app = LightcraftApp::new(s, Services { png: None, ..Default::default() });
         app.ui.view = ViewMode::Detail;
         app.ui.right = RightPanel::Edit;
-        app.ui.ir_tab = false;
         app.ui.histogram = false;
         app.ui.open_sections.clear();
         let mut h = Headless::new(app, [1200.0, 1800.0], 1.0);
@@ -492,6 +491,8 @@ mod tests {
     #[test]
     fn ir_false_color_and_ir_mono_sections_fit_and_apply_mixes() {
         let (mut h, ir_id, chrome_id, dir) = app_with_nikon_raw_and_dcps("fc-mono");
+        assert!(widget(&h, "tab:edit").is_none(), "legacy Edit/Infrared tab bar must be removed");
+        assert!(widget(&h, "tab:infrared").is_none(), "legacy Infrared tab button must be removed");
         let fc = widget(&h, "section:irFalseColor").expect("irFalseColor");
         let _mono = widget(&h, "section:irMono").expect("irMono");
         let aero = widget(&h, "section:irAerochrome").expect("irAerochrome");

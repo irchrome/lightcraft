@@ -71,10 +71,9 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui) {
             }
             return;
         };
-        // the Edit panel's tab bar and histogram stay above its sliders as they scroll (#2679)
+        // the Edit panel's histogram stays above its sliders as they scroll (#2679)
         if app.ui.right == RightPanel::Edit {
             ui.spacing_mut().item_spacing.y = 0.0;
-            super::ir_tab::tab_bar(app, ui);
             if app.ui.histogram {
                 super::edit::histogram(app, ui, id);
             }
@@ -96,13 +95,7 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui) {
         let scrolled = area.show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 0.0;
             match app.ui.right {
-                RightPanel::Edit => {
-                    if app.ui.ir_tab {
-                        super::ir_tab::show(app, ui, id);
-                    } else {
-                        super::edit::show(app, ui, id);
-                    }
-                }
+                RightPanel::Edit => super::edit::show(app, ui, id),
                 RightPanel::Profiles => super::profiles::show(app, ui, id),
                 RightPanel::Crop => crop(app, ui, id),
                 RightPanel::Remove => remove(app, ui, id),

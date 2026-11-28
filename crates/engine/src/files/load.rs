@@ -194,7 +194,13 @@ fn load_bytes_now(
         raw.data = lightcraft_raw::RawData::U16(Vec::new());
         let hue_sat = camera_look.as_ref().and_then(|p| p.hue_sat.as_ref()).and_then(crate::camera_preview::HueSat::new);
         // A DNG's own profile look (hue/saturation map, look table), DNG spec chapter 6.
-        let tables = lightcraft_raw::profile::ProfileTables::new(&raw.color.profile, lightcraft_raw::color::illuminant_weight(&raw.color, xy));
+        // For an imported DCP, defer HueSatMap / LookTable until after WB so large WB shifts
+        // (especially infrared WB eyedropper picks) are not warped by tables baked at as-shot WB.
+        let has_profile_tables = raw.color.profile.hue_sat_map.iter().any(Option::is_some) || raw.color.profile.look_table.is_some();
+        let defer_profile_look = dcp.is_some() && has_profile_tables;
+        let tables = (!defer_profile_look)
+            .then(|| lightcraft_raw::profile::ProfileTables::new(&raw.color.profile, lightcraft_raw::color::illuminant_weight(&raw.color, xy)))
+            .flatten();
         let colour = CameraColourModel {
             wb: t.wb,
             matrix: camera_look.as_ref().map(|p| p.matrix.mul(&t.matrix)).unwrap_or(t.matrix),
@@ -267,6 +273,8 @@ fn load_bytes_now(
                 legacy_relative_wb: scale.legacy_relative,
                 camera_color,
                 camera_tone,
+                profile_look: defer_profile_look
+                    .then(|| Arc::new(lightcraft_raw::profile::ProfileLook { tone_curve: None, gain_table_map: None, ..raw.color.profile.clone() })),
                 mattes,
                 local_tone,
                 // (the catalog knows the original's size: `media::source_info`)

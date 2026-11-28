@@ -798,13 +798,7 @@ pub fn specs() -> Vec<CommandSpec> {
                 let info = s.source_info(id);
                 let d = s.develop_of(id).unwrap_or_default();
                 let sample = sample_point(&src, &d, x, y);
-                let c = lightcraft_pipeline::local::wb_matrix_for(&info, &d.effective()).map_or(sample, |m| {
-                    [
-                        m[0][0] * sample[0] + m[0][1] * sample[1] + m[0][2] * sample[2],
-                        m[1][0] * sample[0] + m[1][1] * sample[1] + m[1][2] * sample[2],
-                        m[2][0] * sample[0] + m[2][1] * sample[1] + m[2][2] * sample[2],
-                    ]
-                });
+                let c = lightcraft_pipeline::local::apply_white_balance_pixel(&info, &d.effective(), sample);
                 let section_off = !d.section_enabled("channelMixer");
                 let current = d.channel_mixer;
                 let calib = if d.section_enabled("calibration") {
