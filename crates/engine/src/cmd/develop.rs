@@ -760,7 +760,7 @@ pub fn specs() -> Vec<CommandSpec> {
                 edit(s, "develop.wb", "White Balance", |d| {
                     lightcraft_pipeline::local::normalize_wb(d, &info);
                     d.wb.mode = mode;
-                    d.wb.temp = t.clamp(2000.0, 50000.0);
+                    d.wb.temp = t.clamp(controls::WB_MIN_TEMP, 50000.0);
                     d.wb.tint = tint.clamp(-150.0, 150.0);
                     Ok(())
                 })?;

@@ -7,8 +7,8 @@ use egui::{CornerRadius, Sense, Stroke, StrokeKind, pos2, vec2};
 use lightcraft_catalog::{MediaKind, PhotoId};
 use lightcraft_develop::DevelopSettings;
 use lightcraft_engine::cmd::dcp_profiles::is_dcp_id;
-use lightcraft_pipeline::ir_swap::active_hub_ir_mix;
 use lightcraft_pipeline::ir_swap::catalog::{HUB_IR_MIXES, HubIrMixSpec};
+use lightcraft_pipeline::ir_swap::{active_hub_ir_mix, choose_hub_ir_mix};
 use serde_json::json;
 
 use super::edit::{REL_TEMP, REL_TINT, apply_slider_out, control, k_to_rel, rel_to_k, sub_title};
@@ -20,11 +20,11 @@ use crate::{HoverPreview, LightcraftApp};
 
 const FALSE_COLOR_FAMILIES: &[(&str, &str)] = &[
     ("all", "All"),
-    ("builtin", "Built-in"),
     ("swap", "Swaps"),
     ("swap-variant", "Swap Variants"),
     ("creative", "Creative"),
     ("fit", "Fitted Looks"),
+    ("builtin", "Built-in"),
 ];
 
 fn is_chrome_profile(pid: &str, name: &str) -> bool {
@@ -117,6 +117,41 @@ fn picker_bar(app: &mut LightcraftApp, ui: &mut egui::Ui, wb_id: &str, mixer_id:
     });
 }
 
+fn swap_rb_primary_row(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, active: bool) {
+    let t = Tokens::get(ui.ctx());
+    let row_w = ui.available_width().max(40.0);
+    let label = crate::i18n::tr("Swap Red and Blue (sRGB)");
+    let (r, resp) = ui.allocate_exact_size(vec2(row_w, 26.0), Sense::click());
+    crate::widgets::announce_selected(&resp, label.to_string(), active);
+    register(ui, "button:irFcSwapRB", r);
+    let fill = if active {
+        t.tool_active
+    } else if resp.hovered() {
+        t.hover
+    } else {
+        t.button
+    };
+    let p = ui.painter();
+    p.rect(r, CornerRadius::same(4), fill, Stroke::new(1.0, t.accent), StrokeKind::Inside);
+    let galley = one_line(p, label, t.semibold(12.0), t.text, (row_w - 14.0).max(16.0));
+    p.galley(r.center() - galley.size() / 2.0, galley, t.text);
+    if resp.hovered()
+        && !active
+        && let Some(spec) = HUB_IR_MIXES.iter().find(|s| s.ir_mix_id == Some("swapRB"))
+    {
+        let mut s = d.clone();
+        if choose_hub_ir_mix(&mut s, spec).is_ok() {
+            if !s.section_enabled("channelMixer") {
+                s.set_section_enabled("channelMixer", true);
+            }
+            app.hover_preview = Some(HoverPreview { label: format!("IR Mix: {}", spec.name), settings: s });
+        }
+    }
+    if resp.clicked() {
+        run(app, ui, "develop.mixerSwapRBsRGB", json!({}));
+    }
+}
+
 fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSettings, id: PhotoId, raw: bool) {
     let t = Tokens::get(ui.ctx());
     let ir_dcps: Vec<(String, String)> = app
@@ -150,7 +185,7 @@ fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSe
             }
         });
     });
-    if d.profile.id != "lc.color" {
+    if d.profile.id != "lc.color" && !is_dcp_id(&d.profile.id) {
         control(app, ui, d, "profile.amount", true);
         ui.add_space(4.0);
     }
@@ -158,6 +193,7 @@ fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSe
     sub_title(ui, "White Balance");
     picker_bar(app, ui, "irFcWbPicker", "irFcMixerPicker", "irFcResetMixer", "channelMixer");
     wb_controls(app, ui, d, raw);
+    control(app, ui, d, "light.exposure", true);
 
     let active_spec = active_hub_ir_mix(d);
     let active_id = active_spec.map(|s| s.id);
@@ -166,9 +202,7 @@ fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSe
 
     sub_title(ui, "False-Color Mixes");
     egui::Frame::NONE.inner_margin(egui::Margin { left: 24, right: 22, top: 2, bottom: 6 }).show(ui, |ui| {
-        if text_button(ui, "irFcSwapRB", "Swap Red and Blue (sRGB)", active_spec.is_some_and(|s| s.ir_mix_id == Some("swapRB"))).clicked() {
-            run(app, ui, "develop.mixerSwapRBsRGB", json!({}));
-        }
+        swap_rb_primary_row(app, ui, d, active_spec.is_some_and(|s| s.ir_mix_id == Some("swapRB")));
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
             for (key, label) in FALSE_COLOR_FAMILIES {
@@ -180,19 +214,20 @@ fn false_color_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSe
         ui.add_space(4.0);
         ui.spacing_mut().item_spacing.y = 3.0;
         let is_fc_builtin = |s: &&HubIrMixSpec| s.ir_mix_id.is_some() && s.ir_mix_id != Some("swapRB") && s.family != "mono";
+        let extended_groups = &FALSE_COLOR_FAMILIES[1..5];
         if selected == "all" {
-            let builtins: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(is_fc_builtin).collect();
-            render_group(app, ui, d, active_id, Some("Built-in"), "irFcMix", &builtins);
-            for (key, label) in &FALSE_COLOR_FAMILIES[2..] {
+            for (key, label) in extended_groups {
                 let group: Vec<&HubIrMixSpec> =
                     HUB_IR_MIXES.iter().filter(|s| s.ir_mix_id.is_none() && s.family != "mono" && s.family == *key).collect();
                 render_group(app, ui, d, active_id, Some(label), "irFcMix", &group);
             }
             let other: Vec<&HubIrMixSpec> = HUB_IR_MIXES
                 .iter()
-                .filter(|s| s.ir_mix_id.is_none() && s.family != "mono" && !FALSE_COLOR_FAMILIES[2..].iter().any(|(k, _)| *k == s.family))
+                .filter(|s| s.ir_mix_id.is_none() && s.family != "mono" && !extended_groups.iter().any(|(k, _)| *k == s.family))
                 .collect();
             render_group(app, ui, d, active_id, Some("Other"), "irFcMix", &other);
+            let builtins: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(is_fc_builtin).collect();
+            render_group(app, ui, d, active_id, Some("Other Built-in"), "irFcMix", &builtins);
         } else if selected == "builtin" {
             let builtins: Vec<&HubIrMixSpec> = HUB_IR_MIXES.iter().filter(is_fc_builtin).collect();
             render_group(app, ui, d, active_id, None, "irFcMix", &builtins);
@@ -288,7 +323,7 @@ fn aerochrome_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSet
             let _ = app.run("file.importPresets", json!({}));
         }
     });
-    if d.profile.id != "lc.color" {
+    if d.profile.id != "lc.color" && !is_dcp_id(&d.profile.id) {
         control(app, ui, d, "profile.amount", true);
         ui.add_space(4.0);
     }
@@ -296,6 +331,7 @@ fn aerochrome_section(app: &mut LightcraftApp, ui: &mut egui::Ui, d: &DevelopSet
     sub_title(ui, "White Balance");
     picker_bar(app, ui, "irAeroWbPicker", "irAeroMixerPicker", "irAeroResetColor", "color");
     wb_controls(app, ui, d, raw);
+    control(app, ui, d, "light.exposure", true);
 
     sub_title(ui, "Color Grading");
     control(app, ui, d, "color.vibrance", true);
@@ -486,17 +522,24 @@ mod tests {
                 "icon:irFcWbPicker",
                 "icon:irFcMixerPicker",
                 "button:irFcResetMixer",
+                "slider:light.exposure",
                 "button:irFcSwapRB",
                 "button:irFcFilter:all",
                 "button:irFcFilter:builtin",
                 "irFcMix:own-swap-amber",
             ],
         );
+        assert_eq!(h.request("ui.hoverWidget", json!({"id": "button:irFcSwapRB"}), T)["ok"], true);
+        assert_eq!(h.app.hover_preview.as_ref().and_then(|p| p.settings.ir_mix.as_ref()).map(|m| m.mix.as_str()), Some("swapRB"));
+        assert_eq!(h.request("ui.clickWidget", json!({"id": "button:irFcSwapRB"}), T)["ok"], true);
+        h.settle(SETTLE);
+        let pid = h.app.session.active().unwrap();
+        assert_eq!(h.app.session.develop_of(pid).unwrap().ir_mix.as_ref().map(|m| m.mix.as_str()), Some("swapRB"));
+
         assert_eq!(h.request("ui.clickWidget", json!({"id": "button:irFcFilter:swap"}), T)["ok"], true);
         h.settle(SETTLE);
         assert_eq!(h.request("ui.clickWidget", json!({"id": "irFcMix:own-swap-amber"}), T)["ok"], true);
         h.settle(SETTLE);
-        let pid = h.app.session.active().unwrap();
         assert_eq!(h.app.session.develop_of(pid).unwrap().ir_mix.as_ref().map(|m| m.mix.as_str()), Some("own-swap-amber"));
 
         assert_eq!(h.request("ui.hoverWidget", json!({"id": ir_widget}), T)["ok"], true);
@@ -511,7 +554,7 @@ mod tests {
         assert_eq!(d.profile.id, ir_id);
         assert!(d.ir_mix.is_none(), "swap must auto-reset on profile change");
         assert!(d.channel_mixer.is_identity(), "channel mixer must auto-reset on profile change");
-        assert_fits(&h, panel, &["slider:profile.amount"]);
+        assert!(widget(&h, "slider:profile.amount").is_none(), "DCP profiles should not show a dead Amount slider");
 
         h.app.run("section.irMono", json!({"solo": true})).unwrap();
         h.settle(SETTLE);
@@ -562,10 +605,11 @@ mod tests {
         assert_eq!(h.request("ui.clickWidget", json!({"id": "flyout:irAeroCalib"}), T)["ok"], true);
         assert_eq!(h.request("ui.clickWidget", json!({"id": "flyout:irAeroHsl"}), T)["ok"], true);
         h.settle(SETTLE);
+        assert!(widget(&h, "slider:profile.amount").is_none(), "Chrome DCP should not show a dead Amount slider");
         assert_fits(
             &h,
             panel,
-            &["irAeroProfile:lc.color", "button:irAeroImportDcp", "slider:profile.amount", "flyout:irAeroHsl", "flyout:irAeroCalib"],
+            &["irAeroProfile:lc.color", "button:irAeroImportDcp", "slider:light.exposure", "flyout:irAeroHsl", "flyout:irAeroCalib"],
         );
 
         let _ = std::fs::remove_dir_all(&dir);

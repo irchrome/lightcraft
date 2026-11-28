@@ -140,6 +140,10 @@ impl ControlSpec {
     }
 }
 
+/// Minimum Kelvin temperature supported by `wb.temp` (extended below 2000 K for infrared RAW
+/// white balance while keeping CIE Z > 0 on the Planckian locus).
+pub const WB_MIN_TEMP: f64 = 1300.0;
+
 /// The Kelvin temperature at the middle of its track, as in Lightroom.
 const KELVIN_CENTRE: f64 = 7000.0;
 /// Where the right half of the Kelvin track turns logarithmic: 1000 K gives it close to the left half's slope
@@ -177,7 +181,7 @@ use Track::*;
 
 controls! {
     "profile.amount" => profile.amount, "Amount", Profile, 0, 200, 100, 1, 0, Plain;
-    "wb.temp" => wb.temp, "Temp", Color, 2000, 50000, 6500, 50, 0, Temp;
+    "wb.temp" => wb.temp, "Temp", Color, 1300, 50000, 6500, 50, 0, Temp;
     "wb.tint" => wb.tint, "Tint", Color, -150, 150, 0, 1, 0, Tint;
     "light.exposure" => light.exposure, "Exposure", Light, -5, 5, 0, 0.01, 2, Centered;
     "light.contrast" => light.contrast, "Contrast", Light, -100, 100, 0, 1, 0, Centered;
@@ -609,30 +613,36 @@ mod tests {
     #[test]
     fn the_kelvin_track_is_lightrooms_and_others_stay_linear() {
         let temp = find("wb.temp").unwrap();
-        for (k, lightroom, model) in [
-            (2000.0, 0.0, 0.0),
-            (3650.0, 0.167, 0.165),
-            (5400.0, 0.333, 0.34),
-            (7000.0, 0.5, 0.5),
-            (15000.0, 0.79, 0.79),
-            (20000.0, 0.853, 0.849),
-            (30000.0, 0.90, 0.92),
-            (50000.0, 1.0, 1.0),
+        let left_pos = |k: f64| 0.5 * (k - WB_MIN_TEMP) / (KELVIN_CENTRE - WB_MIN_TEMP);
+        for (k, model) in [
+            (1300.0, 0.0),
+            (2000.0, left_pos(2000.0)),
+            (3650.0, left_pos(3650.0)),
+            (5400.0, left_pos(5400.0)),
+            (7000.0, 0.5),
+            (15000.0, 0.79),
+            (20000.0, 0.849),
+            (30000.0, 0.92),
+            (50000.0, 1.0),
         ] {
             let p = temp.position(k);
             assert!((p - model).abs() < 0.001, "{k} K at {p}, the model says {model}");
+        }
+        // upper half above 7000 K still matches Lightroom's positions within 2 %
+        for (k, lightroom) in [(7000.0, 0.5), (15000.0, 0.79), (20000.0, 0.853), (30000.0, 0.90), (50000.0, 1.0)] {
+            let p = temp.position(k);
             assert!((p - lightroom).abs() <= 0.021, "{k} K at {p}, Lightroom at {lightroom}");
         }
         // every 50 K step survives value → position → value, and the track never runs backwards
         let mut last = -1.0;
-        for k in (2000..=50000).step_by(50).map(f64::from) {
+        for k in (1300..=50000).step_by(50).map(f64::from) {
             let p = temp.position(k);
             assert!(p > last, "{k} K");
             last = p;
             let back = (temp.value_at(p) / temp.step).round() * temp.step;
             assert_eq!(back, k, "{k} K → {p} → {back}");
         }
-        assert_eq!((temp.value_at(-1.0), temp.value_at(2.0), temp.value_at(f64::NAN)), (2000.0, 50000.0, 2000.0));
+        assert_eq!((temp.value_at(-1.0), temp.value_at(2.0), temp.value_at(f64::NAN)), (1300.0, 50000.0, 1300.0));
         assert_eq!((temp.position(1.0), temp.position(1e9), temp.position(f64::NAN)), (0.0, 1.0, temp.position(temp.default)));
         let exposure = find("light.exposure").unwrap();
         for (v, p) in [(-5.0, 0.0), (-2.5, 0.25), (0.0, 0.5), (1.0, 0.6), (5.0, 1.0)] {
@@ -644,5 +654,16 @@ mod tests {
         // a Kelvin range that doesn't contain the centre falls back to linear rather than dividing by zero
         let narrow = ControlSpec { min: 7000.0, max: 9000.0, ..*temp };
         assert_eq!((narrow.position(8000.0), narrow.value_at(0.5)), (0.5, 8000.0));
+    }
+
+    #[test]
+    fn wb_temp_allows_infrared_kelvin_below_2000_down_to_1300() {
+        let mut s = DevelopSettings::default();
+        assert!(set(&mut s, "wb.temp", 1500.0));
+        assert_eq!(s.wb.temp, 1500.0);
+        assert!(set(&mut s, "wb.temp", 1300.0));
+        assert_eq!(s.wb.temp, 1300.0);
+        assert!(set(&mut s, "wb.temp", 900.0));
+        assert_eq!(s.wb.temp, WB_MIN_TEMP);
     }
 }

@@ -14,10 +14,6 @@ use lightcraft_raster::{Plane, Rgb32f};
 
 use crate::{Quality, SourceInfo};
 
-pub fn to_craft_xy(xy: Xy) -> CraftXy {
-    CraftXy { x: xy.x, y: xy.y }
-}
-
 pub fn from_craft_xy(xy: CraftXy) -> Xy {
     Xy { x: xy.x, y: xy.y }
 }

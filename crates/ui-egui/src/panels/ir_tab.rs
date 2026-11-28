@@ -154,7 +154,7 @@ pub fn show(app: &mut LightcraftApp, ui: &mut egui::Ui, id: PhotoId) {
             }
         });
 
-        if d.profile.id != "lc.color" {
+        if d.profile.id != "lc.color" && !is_dcp_id(&d.profile.id) {
             control(app, ui, &d, "profile.amount", true);
             ui.add_space(4.0);
         }
